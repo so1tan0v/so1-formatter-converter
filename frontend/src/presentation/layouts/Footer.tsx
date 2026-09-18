@@ -1,7 +1,16 @@
+/**
+ * Imports from packages
+ */
 import { useLocation } from 'react-router-dom';
 
+/**
+ * Imports from presentation
+ */
 import { dispatchTuiCommand } from '@presentation/tui/commands';
 
+/**
+ * Нижняя панель с действиями Format, Convert и Copy
+ */
 export function Footer() {
   const location = useLocation();
   const converterActive = location.pathname.startsWith('/converter');

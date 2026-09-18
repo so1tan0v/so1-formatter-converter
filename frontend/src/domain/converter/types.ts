@@ -1,3 +1,6 @@
+/**
+ * Идентификаторы доступных и планируемых конвертеров
+ */
 export const CONVERTER_IDS = [
   'markdown-jira',
   'json-yaml',

@@ -1,3 +1,6 @@
+/**
+ * Imports from presentation
+ */
 import type { AppTheme } from '@presentation/theme/types';
 
 const tokenVars: Record<keyof AppTheme['tokens'], string> = {
@@ -20,6 +23,11 @@ const tokenVars: Record<keyof AppTheme['tokens'], string> = {
   scanlineOpacity: '--app-scanline-opacity',
 };
 
+/**
+ * Применяет токены темы к корневому элементу документа
+ *
+ * @param theme Активная тема приложения
+ */
 export function applyTheme(theme: AppTheme): void {
   const root = document.documentElement;
 

@@ -1,18 +1,25 @@
+/**
+ * Imports from packages
+ */
 import { Field } from 'formik';
 
-import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
-import type { FormatterId } from '@domain/formatter/types';
+/**
+ * Imports from domain
+ */
 import { OUTPUT_MODES, SQL_KEYWORD_CASES } from '@domain/formatter/types';
+import type { FormatterId } from '@domain/formatter/types';
+import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
 
 interface FormatterOptionsFieldsProps {
   formatterId: FormatterId;
 }
 
-const KEYWORD_CASE_LABELS: Record<(typeof SQL_KEYWORD_CASES)[number], string> = {
-  upper: 'Upper',
-  lower: 'Lower',
-  preserve: 'As is',
-};
+const KEYWORD_CASE_LABELS: Record<(typeof SQL_KEYWORD_CASES)[number], string> =
+  {
+    upper: 'Upper',
+    lower: 'Lower',
+    preserve: 'As is',
+  };
 
 const MODE_LABELS: Record<(typeof OUTPUT_MODES)[number], string> = {
   pretty: 'Pretty',
@@ -20,6 +27,11 @@ const MODE_LABELS: Record<(typeof OUTPUT_MODES)[number], string> = {
   escaped: 'Escaped string',
 };
 
+/**
+ * Поля настроек форматирования для выбранного типа
+ *
+ * @param formatterId Идентификатор активного форматтера
+ */
 export function FormatterOptionsFields({
   formatterId,
 }: FormatterOptionsFieldsProps) {

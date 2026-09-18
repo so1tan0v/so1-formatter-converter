@@ -1,5 +1,11 @@
+/**
+ * Imports from packages
+ */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
+/**
+ * Imports from presentation
+ */
 import { applyTheme } from '@presentation/theme/apply-theme';
 import { defaultTheme, getTheme, themes } from '@presentation/theme/catalog';
 import { ThemeContext } from '@presentation/theme/theme-context';
@@ -9,6 +15,12 @@ interface ThemeProviderProps {
   initialThemeId?: string;
 }
 
+/**
+ * Провайдер темы приложения
+ *
+ * @param children Дочерние элементы, которым нужна тема
+ * @param initialThemeId Необязательный идентификатор стартовой темы
+ */
 export function ThemeProvider({
   children,
   initialThemeId,

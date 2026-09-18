@@ -1,8 +1,18 @@
+/**
+ * Imports from application
+ */
 import type { ConverterRegistry } from '@application/convert-text';
+
+/**
+ * Imports from domain
+ */
 import type { TextConverter } from '@domain/converter/ports';
 import type { ConverterId } from '@domain/converter/types';
 import { failure } from '@domain/shared/result';
 
+/**
+ * Imports from relative
+ */
 import { MarkdownJiraConverter } from './markdown-jira/markdown-jira.converter';
 
 const PLACEHOLDERS: TextConverter[] = [
@@ -20,6 +30,9 @@ const PLACEHOLDERS: TextConverter[] = [
   },
 ];
 
+/**
+ * Создает реестр конвертеров, включая заглушки для будущих направлений
+ */
 export function createConverterRegistry(): ConverterRegistry {
   const converters: TextConverter[] = [
     new MarkdownJiraConverter(),

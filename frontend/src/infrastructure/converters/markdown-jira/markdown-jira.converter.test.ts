@@ -1,5 +1,11 @@
+/**
+ * Imports from packages
+ */
 import { describe, expect, it } from 'vitest';
 
+/**
+ * Imports from relative
+ */
 import { MarkdownJiraConverter } from './markdown-jira.converter';
 import { markdownToJira } from './markdown-to-jira';
 

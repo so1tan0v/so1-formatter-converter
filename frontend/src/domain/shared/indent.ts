@@ -1,3 +1,6 @@
+/**
+ * Доступные стили отступа: пробелы или табуляция
+ */
 export const INDENT_STYLES = [
   '1-space',
   '2-space',
@@ -8,6 +11,9 @@ export const INDENT_STYLES = [
 
 export type IndentStyle = (typeof INDENT_STYLES)[number];
 
+/**
+ * Подписи стилей отступа для интерфейса
+ */
 export const INDENT_STYLE_LABELS: Record<IndentStyle, string> = {
   '1-space': '1 space',
   '2-space': '2 spaces',
@@ -16,6 +22,11 @@ export const INDENT_STYLE_LABELS: Record<IndentStyle, string> = {
   tab: 'tab',
 };
 
+/**
+ * Возвращает строку отступа для выбранного стиля
+ *
+ * @param style Стиль отступа: пробелы или табуляция
+ */
 export function indentString(style: IndentStyle): string {
   switch (style) {
     case '1-space':
@@ -31,6 +42,12 @@ export function indentString(style: IndentStyle): string {
   }
 }
 
+/**
+ * Повторяет отступ нужное число раз
+ *
+ * @param style Стиль отступа: пробелы или табуляция
+ * @param depth Число уровней вложенности
+ */
 export function indentUnit(style: IndentStyle, depth: number): string {
   return indentString(style).repeat(depth);
 }

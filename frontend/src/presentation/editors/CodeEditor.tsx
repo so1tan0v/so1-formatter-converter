@@ -1,7 +1,13 @@
+/**
+ * Imports from packages
+ */
 import Editor, { type Monaco } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { useEffect, useRef } from 'react';
 
+/**
+ * Imports from presentation
+ */
 import type { EditorLanguage } from '@presentation/editors/languages';
 import {
   defineMonacoTheme,
@@ -19,6 +25,15 @@ interface CodeEditorProps {
   onChange?: (value: string) => void;
 }
 
+/**
+ * Редактор кода на Monaco с подсветкой и темой приложения
+ *
+ * @param value Текст в редакторе
+ * @param language Язык подсветки
+ * @param readOnly Признак режима только для чтения
+ * @param ariaLabel Подпись редактора для вспомогательных технологий
+ * @param onChange Обработчик изменения текста
+ */
 export function CodeEditor({
   value,
   language,

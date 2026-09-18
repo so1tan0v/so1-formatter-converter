@@ -1,5 +1,11 @@
+/**
+ * Imports from packages
+ */
 import type { ReactNode } from 'react';
 
+/**
+ * Imports from presentation
+ */
 import { useMediaQuery } from '@presentation/hooks/useMediaQuery';
 import { usePersistedWindowSize } from '@presentation/hooks/usePersistedWindowSize';
 import { Footer } from '@presentation/layouts/Footer';
@@ -9,6 +15,11 @@ interface AppShellProps {
   children: ReactNode;
 }
 
+/**
+ * Оболочка приложения: окно, шапка, подвал и основная область
+ *
+ * @param children Содержимое рабочей области
+ */
 export function AppShell({ children }: AppShellProps) {
   const isPhone = useMediaQuery('(max-width: 767.98px)');
   const { size, onGripPointerDown } = usePersistedWindowSize(!isPhone);

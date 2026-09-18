@@ -1,3 +1,6 @@
+/**
+ * Imports from relative
+ */
 import type {
   Assignment,
   BlockStatement,
@@ -39,6 +42,11 @@ const INTERVAL_UNITS = new Set([
   'SECONDS',
 ]);
 
+/**
+ * Разбирает SQL-скрипт в список выражений
+ *
+ * @param input Исходный SQL-текст
+ */
 export function parseSql(input: string): SqlStatement[] {
   const tokens = tokenizeSql(input);
   const parser = new SqlParser(tokens);
@@ -49,6 +57,11 @@ export function parseSql(input: string): SqlStatement[] {
   return statements;
 }
 
+/**
+ * Пытается разобрать SQL и возвращает undefined, если разбор не удался
+ *
+ * @param input Исходный SQL-текст
+ */
 export function tryParseSql(input: string): SqlStatement[] | undefined {
   const source = input.trim();
 
@@ -128,40 +141,48 @@ class SqlParser {
       if (!where && this.atKeyword('WHERE')) {
         whereKw = this.expectKeyword('WHERE');
         where = this.parseExpr();
+
         continue;
       }
 
       if (groupBy.length === 0 && this.atKeyword('GROUP')) {
         const groupKw = this.expectKeyword('GROUP');
         const byKw = this.expectKeyword('BY');
+
         groupByKw = [groupKw, byKw];
         groupBy = this.parseExprList();
+
         continue;
       }
 
       if (!having && this.atKeyword('HAVING')) {
         havingKw = this.expectKeyword('HAVING');
         having = this.parseExpr();
+
         continue;
       }
 
       if (orderBy.length === 0 && this.atKeyword('ORDER')) {
         const orderKw = this.expectKeyword('ORDER');
         const byKw = this.expectKeyword('BY');
+
         orderByKw = [orderKw, byKw];
         orderBy.push(...this.parseOrderList());
+
         continue;
       }
 
       if (!limit && this.atKeyword('LIMIT')) {
         limitKw = this.expectKeyword('LIMIT');
         limit = this.parseExpr();
+
         continue;
       }
 
       if (!offset && this.atKeyword('OFFSET')) {
         offsetKw = this.expectKeyword('OFFSET');
         offset = this.parseExpr();
+
         continue;
       }
 
@@ -198,6 +219,7 @@ class SqlParser {
   expectEof(): void {
     if (!this.at('eof')) {
       const token = this.peek();
+
       throw new Error(
         `Unexpected token "${token.raw}" at position ${token.pos}`,
       );
@@ -238,9 +260,8 @@ class SqlParser {
     }
 
     const token = this.peek();
-    throw new Error(
-      `Unexpected token "${token.raw}" at position ${token.pos}`,
-    );
+
+    throw new Error(`Unexpected token "${token.raw}" at position ${token.pos}`);
   }
 
   private parseInsert(): InsertStatement {
@@ -304,6 +325,7 @@ class SqlParser {
       if (set.length === 0 && this.atKeyword('SET')) {
         setKw = this.expectKeyword('SET');
         set = this.parseAssignments();
+
         continue;
       }
 
@@ -320,12 +342,14 @@ class SqlParser {
 
       if (this.isJoinStart()) {
         joins.push(this.parseJoin());
+
         continue;
       }
 
       if (!where && this.atKeyword('WHERE')) {
         whereKw = this.expectKeyword('WHERE');
         where = this.parseExpr();
+
         continue;
       }
 
@@ -334,6 +358,7 @@ class SqlParser {
 
     if (!setKw || set.length === 0) {
       const token = this.peek();
+
       throw new Error(`Expected SET at position ${token.pos}`);
     }
 
@@ -376,8 +401,10 @@ class SqlParser {
   private parseCall(): CallStatement {
     const callKw = this.expectKeyword('CALL');
     const name = this.parseIdentPath();
+
     this.expectPunct('(');
     const args = this.atPunct(')') ? [] : this.parseExprList();
+
     this.expectPunct(')');
 
     return { type: 'call-stmt', callKw, name, args };
@@ -426,14 +453,17 @@ class SqlParser {
       kindKw = this.expectKeyword('PROCEDURE');
     } else {
       const token = this.peek();
+
       throw new Error(
         `Expected FUNCTION or PROCEDURE at position ${token.pos}, got "${token.raw}"`,
       );
     }
 
     const name = this.parseIdentPath();
+
     this.expectPunct('(');
     const params = this.parseRoutineParams();
+
     this.expectPunct(')');
 
     let returnsKw: string | undefined;
@@ -447,12 +477,14 @@ class SqlParser {
       if (!returns && this.atKeyword('RETURNS')) {
         returnsKw = this.expectKeyword('RETURNS');
         returns = this.parseDataType();
+
         continue;
       }
 
       if (!language && this.atKeyword('LANGUAGE')) {
         languageKw = this.expectKeyword('LANGUAGE');
         language = this.expectIdentOrQuoted();
+
         continue;
       }
 
@@ -466,11 +498,13 @@ class SqlParser {
 
       if (!body && this.atKeyword('AS')) {
         body = this.parseRoutineStringBody();
+
         continue;
       }
 
       if (!body && this.atKeyword('BEGIN')) {
         body = this.parseBlock();
+
         continue;
       }
 
@@ -601,6 +635,7 @@ class SqlParser {
 
       if (!this.matchOp('=')) {
         const token = this.peek();
+
         throw new Error(
           `Expected "=" at position ${token.pos}, got "${token.raw}"`,
         );
@@ -620,6 +655,7 @@ class SqlParser {
 
     do {
       const expr = this.parseExpr();
+
       items.push({ expr, ...this.parseOptionalAlias() });
     } while (this.matchPunct(','));
 
@@ -684,8 +720,7 @@ class SqlParser {
 
     do {
       const expr = this.parseExpr();
-      const directionKw =
-        this.matchKeyword('ASC') ?? this.matchKeyword('DESC');
+      const directionKw = this.matchKeyword('ASC') ?? this.matchKeyword('DESC');
 
       items.push({ expr, directionKw });
     } while (this.matchPunct(','));
@@ -830,6 +865,7 @@ class SqlParser {
 
     while (this.matchOp('+') || this.matchOp('-')) {
       const op = this.prev().value;
+
       left = { type: 'binary', op, left, right: this.parseMul() };
     }
 
@@ -841,6 +877,7 @@ class SqlParser {
 
     while (this.matchOp('*') || this.matchOp('/') || this.matchOp('%')) {
       const op = this.prev().value;
+
       left = { type: 'binary', op, left, right: this.parseUnary() };
     }
 
@@ -893,12 +930,14 @@ class SqlParser {
     if (this.matchPunct('(')) {
       if (this.atKeyword('SELECT')) {
         const select = this.parseSelect();
+
         this.expectPunct(')');
 
         return { type: 'subquery', select };
       }
 
       const expr = this.parseExpr();
+
       this.expectPunct(')');
 
       return { type: 'paren', expr };
@@ -917,6 +956,7 @@ class SqlParser {
     }
 
     const token = this.peek();
+
     throw new Error(`Unexpected token "${token.raw}" at position ${token.pos}`);
   }
 
@@ -930,6 +970,7 @@ class SqlParser {
       value = { type: 'number', value: this.eat().value };
     } else {
       const token = this.peek();
+
       throw new Error(
         `Expected interval value at position ${token.pos}, got "${token.raw}"`,
       );
@@ -942,7 +983,8 @@ class SqlParser {
 
   private atIntervalUnit(): boolean {
     const token = this.peek();
-    const raw = token.type === 'ident' || token.type === 'keyword' ? token.raw : '';
+    const raw =
+      token.type === 'ident' || token.type === 'keyword' ? token.raw : '';
 
     return INTERVAL_UNITS.has(raw.toUpperCase());
   }
@@ -950,6 +992,7 @@ class SqlParser {
   private parseInList(expr: SqlExpr, inKw: string, notKw?: string): SqlExpr {
     this.expectPunct('(');
     const values = this.parseExprList();
+
     this.expectPunct(')');
 
     return { type: 'in', notKw, inKw, expr, values };
@@ -977,8 +1020,10 @@ class SqlParser {
 
     if (name.toUpperCase() === 'CAST') {
       const expr = this.parseExpr();
+
       this.expectKeyword('AS');
       const typeName = this.parseIdentPath();
+
       this.expectPunct(')');
 
       return {
@@ -1014,6 +1059,7 @@ class SqlParser {
       const when = this.parseExpr();
       const thenKw = this.expectKeyword('THEN');
       const then = this.parseExpr();
+
       whens.push({ whenKw, thenKw, when, then });
     }
 
@@ -1038,6 +1084,7 @@ class SqlParser {
     while (this.matchPunct('.')) {
       if (this.matchOp('*')) {
         parts.push('*');
+
         break;
       }
 
@@ -1159,6 +1206,7 @@ class SqlParser {
   private matchPunct(value: string): boolean {
     if (this.atPunct(value)) {
       this.eat();
+
       return true;
     }
 
@@ -1170,6 +1218,7 @@ class SqlParser {
 
     if (token.type === 'op' && token.value === value) {
       this.eat();
+
       return true;
     }
 
@@ -1181,6 +1230,7 @@ class SqlParser {
 
     if (raw === undefined) {
       const token = this.peek();
+
       throw new Error(
         `Expected ${keyword} at position ${token.pos}, got "${token.raw}"`,
       );
@@ -1192,6 +1242,7 @@ class SqlParser {
   private expectPunct(value: string): void {
     if (!this.matchPunct(value)) {
       const token = this.peek();
+
       throw new Error(
         `Expected "${value}" at position ${token.pos}, got "${token.raw}"`,
       );
@@ -1208,6 +1259,7 @@ class SqlParser {
 
   private eat(): Token {
     const token = this.peek();
+
     this.index += 1;
 
     return token;
@@ -1218,7 +1270,10 @@ class SqlParser {
   }
 }
 
-function splitRoutineString(raw: string): { delimiter: string; source: string } {
+function splitRoutineString(raw: string): {
+  delimiter: string;
+  source: string;
+} {
   if (raw.startsWith('$')) {
     const end = raw.indexOf('$', 1);
     const delimiter = raw.slice(0, end + 1);

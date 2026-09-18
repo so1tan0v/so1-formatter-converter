@@ -1,9 +1,24 @@
+/**
+ * Imports from packages
+ */
 import type { Monaco } from '@monaco-editor/react';
 
+/**
+ * Imports from presentation
+ */
 import type { AppTheme } from '@presentation/theme/types';
 
+/**
+ * Имя темы Monaco, синхронизированной с токенами приложения
+ */
 export const MONACO_THEME_NAME = 'app-ui';
 
+/**
+ * Регистрирует тему Monaco по токенам приложения
+ *
+ * @param monaco Экземпляр Monaco
+ * @param theme Активная тема приложения
+ */
 export function defineMonacoTheme(monaco: Monaco, theme: AppTheme): void {
   monaco.editor.defineTheme(MONACO_THEME_NAME, {
     base: 'vs-dark',

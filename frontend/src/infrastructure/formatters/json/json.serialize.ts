@@ -1,6 +1,15 @@
+/**
+ * Imports from domain
+ */
 import type { JsonFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
 
+/**
+ * Сериализует значение в JSON-строку по выбранным настройкам
+ *
+ * @param value Разобранное JSON-значение
+ * @param options Настройки форматирования JSON
+ */
 export function serializeJson(
   value: unknown,
   options: JsonFormatOptions,
@@ -12,12 +21,15 @@ export function serializeJson(
   switch (options.mode) {
     case 'pretty':
       output = JSON.stringify(prepared, null, indentString(options.indent));
+
       break;
     case 'compact':
       output = compact;
+
       break;
     case 'escaped':
       output = JSON.stringify(compact);
+
       break;
   }
 

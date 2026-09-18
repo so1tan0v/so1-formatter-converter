@@ -1,11 +1,20 @@
+/**
+ * Imports from packages
+ */
 import { NavLink, useLocation, useMatch } from 'react-router-dom';
 
+/**
+ * Imports from app
+ */
 import {
   converterRegistry,
   formatterRegistry,
   viewerRegistry,
 } from '@app/composition';
 
+/**
+ * Верхняя панель с разделами Formatter, Converter и Viewer
+ */
 export function Header() {
   const location = useLocation();
   const formatterMatch = useMatch('/formatter/:type');
@@ -48,7 +57,9 @@ export function Header() {
           </NavLink>
           <NavLink
             to="/viewer/markdown"
-            className={() => `tui-tab ${viewerActive ? 'is-active' : ''}`.trim()}
+            className={() =>
+              `tui-tab ${viewerActive ? 'is-active' : ''}`.trim()
+            }
           >
             Viewer
           </NavLink>

@@ -1,8 +1,20 @@
+/**
+ * Imports from packages
+ */
 import YAML from 'js-yaml';
 
+/**
+ * Imports from domain
+ */
 import type { YamlFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
 
+/**
+ * Сериализует значение в YAML-строку по выбранным настройкам
+ *
+ * @param value Разобранное YAML-значение
+ * @param options Настройки форматирования YAML
+ */
 export function serializeYaml(
   value: unknown,
   options: YamlFormatOptions,

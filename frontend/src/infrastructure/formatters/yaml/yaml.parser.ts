@@ -1,8 +1,23 @@
+/**
+ * Imports from packages
+ */
 import YAML from 'js-yaml';
 
-import { parseLooseJson } from '@infrastructure/formatters/json/json.parser';
+/**
+ * Imports from domain
+ */
 import { toErrorMessage } from '@domain/shared/result';
 
+/**
+ * Imports from infrastructure
+ */
+import { parseLooseJson } from '@infrastructure/formatters/json/json.parser';
+
+/**
+ * Разбирает YAML и при неудаче пробует разобрать текст как JSON
+ *
+ * @param input Исходный текст
+ */
 export function parseLooseYaml(input: string): unknown {
   const source = input.trim();
 

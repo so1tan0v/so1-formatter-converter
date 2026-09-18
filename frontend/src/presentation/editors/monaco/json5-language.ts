@@ -1,5 +1,13 @@
+/**
+ * Imports from packages
+ */
 import type { Monaco } from '@monaco-editor/react';
 
+/**
+ * Регистрирует язык json5 в Monaco для упрощенного JSON
+ *
+ * @param monaco Экземпляр Monaco
+ */
 export function registerJson5Language(monaco: Monaco): void {
   const alreadyRegistered = monaco.languages
     .getLanguages()

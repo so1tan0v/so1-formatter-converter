@@ -1,5 +1,11 @@
+/**
+ * Imports from presentation
+ */
 import type { AppTheme } from '@presentation/theme/types';
 
+/**
+ * Тема терминального интерфейса
+ */
 export const terminalTheme: AppTheme = {
   id: 'terminal',
   name: 'Terminal',

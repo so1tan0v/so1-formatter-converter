@@ -1,5 +1,13 @@
+/**
+ * Imports from packages
+ */
 import { useEffect, useState } from 'react';
 
+/**
+ * Подписывается на CSS media query и возвращает текущее совпадение
+ *
+ * @param query Строка media query
+ */
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
     if (typeof window === 'undefined') {

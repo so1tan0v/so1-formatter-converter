@@ -1,9 +1,17 @@
+/**
+ * Imports from relative
+ */
 import { isKeywordName, type Token } from './sql.keywords';
 
 const TWO_CHAR_OPS = ['==', '!=', '<>', '<=', '>=', '||', '&&', '::'];
 const ONE_CHAR_OPS = new Set(['=', '<', '>', '+', '-', '*', '/', '%', '!']);
 const PUNCT = new Set(['(', ')', ',', ';', '.']);
 
+/**
+ * Разбивает SQL-текст на токены
+ *
+ * @param input Исходный SQL-текст
+ */
 export function tokenizeSql(input: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
@@ -13,30 +21,37 @@ export function tokenizeSql(input: string): Token[] {
 
     if (isWhitespace(char)) {
       i += 1;
+
       continue;
     }
 
     if (char === '-' && input[i + 1] === '-') {
       i = skipLine(input, i);
+
       continue;
     }
 
     if (char === '/' && input[i + 1] === '*') {
       i = skipBlockComment(input, i);
+
       continue;
     }
 
     if (char === "'" || char === '"' || char === '`') {
       const token = readQuoted(input, i, char);
+
       tokens.push(token);
       i = token.pos + token.raw.length;
+
       continue;
     }
 
     if (isDigit(char) || (char === '.' && isDigit(input[i + 1] ?? ''))) {
       const token = readNumber(input, i);
+
       tokens.push(token);
       i = token.pos + token.raw.length;
+
       continue;
     }
 
@@ -45,18 +60,21 @@ export function tokenizeSql(input: string): Token[] {
     if (TWO_CHAR_OPS.includes(two)) {
       tokens.push({ type: 'op', value: two, raw: two, pos: i });
       i += 2;
+
       continue;
     }
 
     if (ONE_CHAR_OPS.has(char)) {
       tokens.push({ type: 'op', value: char, raw: char, pos: i });
       i += 1;
+
       continue;
     }
 
     if (PUNCT.has(char)) {
       tokens.push({ type: 'punct', value: char, raw: char, pos: i });
       i += 1;
+
       continue;
     }
 
@@ -69,21 +87,27 @@ export function tokenizeSql(input: string): Token[] {
         }
 
         const raw = input.slice(i, j);
+
         tokens.push({ type: 'ident', value: raw, raw, pos: i });
         i = j;
+
         continue;
       }
 
       const token = readDollarQuote(input, i);
+
       tokens.push(token);
       i = token.pos + token.raw.length;
+
       continue;
     }
 
     if (isIdentStart(char)) {
       const token = readIdent(input, i);
+
       tokens.push(token);
       i = token.pos + token.raw.length;
+
       continue;
     }
 
@@ -126,6 +150,7 @@ function readQuoted(input: string, start: number, quote: string): Token {
 
   while (i < input.length) {
     const char = input[i];
+
     raw += char;
     i += 1;
 
@@ -133,6 +158,7 @@ function readQuoted(input: string, start: number, quote: string): Token {
       if (input[i] === quote) {
         raw += input[i];
         i += 1;
+
         continue;
       }
 

@@ -1,7 +1,16 @@
+/**
+ * Imports from packages
+ */
 import { describe, expect, it } from 'vitest';
 
+/**
+ * Imports from domain
+ */
 import type { KeyValueStorage } from '@domain/shared/key-value-storage';
 
+/**
+ * Imports from relative
+ */
 import { LocalStorageHistoryStore } from './local-storage.history-store';
 
 function memoryStorage(): KeyValueStorage {
@@ -33,7 +42,10 @@ describe('LocalStorageHistoryStore', () => {
     const store = new LocalStorageHistoryStore(memoryStorage());
 
     store.remember('formatter:sql', { source: 'select 1', output: 'SELECT 1' });
-    store.remember('formatter:sql', { source: '  select 1  ', output: 'SELECT 1' });
+    store.remember('formatter:sql', {
+      source: '  select 1  ',
+      output: 'SELECT 1',
+    });
 
     for (let index = 2; index <= 6; index += 1) {
       store.remember('formatter:sql', {
@@ -45,9 +57,9 @@ describe('LocalStorageHistoryStore', () => {
     const entries = store.list('formatter:sql');
 
     expect(entries).toHaveLength(5);
-    expect(entries.filter((entry) => entry.source.trim() === 'select 1')).toHaveLength(
-      0,
-    );
+    expect(
+      entries.filter((entry) => entry.source.trim() === 'select 1'),
+    ).toHaveLength(0);
     expect(entries[0].source).toBe('select 6');
   });
 

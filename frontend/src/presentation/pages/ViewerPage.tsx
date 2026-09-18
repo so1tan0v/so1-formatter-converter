@@ -1,9 +1,26 @@
+/**
+ * Imports from packages
+ */
 import { Navigate, useParams } from 'react-router-dom';
 
+/**
+ * Imports from app
+ */
 import { viewerRegistry } from '@app/composition';
+
+/**
+ * Imports from domain
+ */
 import { VIEWER_IDS, type ViewerId } from '@domain/viewer/types';
+
+/**
+ * Imports from presentation
+ */
 import { SoonPanel } from '@presentation/components/SoonPanel';
 
+/**
+ * Страница просмотрщика, пока показывает заглушку
+ */
 export function ViewerPage() {
   const { type } = useParams();
   const fallback = viewerRegistry.list()[0];

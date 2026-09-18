@@ -1,3 +1,6 @@
+/**
+ * Зарезервированные SQL-ключевые слова
+ */
 export const SQL_KEYWORDS = new Set([
   'SELECT',
   'DISTINCT',
@@ -65,6 +68,9 @@ export const SQL_KEYWORDS = new Set([
   'FALSE',
 ]);
 
+/**
+ * Слова, с которых может начинаться новая SQL-клауза
+ */
 export const CLAUSE_STARTERS = new Set([
   'SELECT',
   'FROM',
@@ -96,6 +102,9 @@ export const CLAUSE_STARTERS = new Set([
   'CREATE',
 ]);
 
+/**
+ * Имена встроенных SQL-функций, которые печатаются как вызовы
+ */
 export const SQL_FUNCTIONS = new Set([
   'IF',
   'IFNULL',
@@ -130,6 +139,11 @@ export interface Token {
   pos: number;
 }
 
+/**
+ * Проверяет, является ли слово зарезервированным SQL-ключевым словом
+ *
+ * @param value Проверяемое слово
+ */
 export function isKeywordName(value: string): boolean {
   return SQL_KEYWORDS.has(value.toUpperCase());
 }

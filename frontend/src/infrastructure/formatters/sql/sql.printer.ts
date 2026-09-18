@@ -1,6 +1,12 @@
+/**
+ * Imports from domain
+ */
 import type { SqlFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
 
+/**
+ * Imports from relative
+ */
 import type {
   Assignment,
   BlockStatement,
@@ -25,6 +31,12 @@ type PrintContext = {
   options: SqlFormatOptions;
 };
 
+/**
+ * Печатает разобранные SQL-выражения в каноническом виде
+ *
+ * @param statements Список разобранных SQL-выражений
+ * @param options Настройки форматирования SQL
+ */
 export function printSql(
   statements: SqlStatement[],
   options: SqlFormatOptions,
@@ -34,7 +46,9 @@ export function printSql(
     options,
   };
 
-  return statements.map((statement) => printStatement(statement, ctx)).join(';\n\n');
+  return statements
+    .map((statement) => printStatement(statement, ctx))
+    .join(';\n\n');
 }
 
 function printStatement(statement: SqlStatement, ctx: PrintContext): string {
@@ -79,9 +93,7 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   }
 
   if (statement.where && statement.whereKw) {
-    lines.push(
-      ...printLeadingBool(statement.whereKw, statement.where, ctx),
-    );
+    lines.push(...printLeadingBool(statement.whereKw, statement.where, ctx));
   }
 
   if (statement.groupBy.length > 0 && statement.groupByKw) {
@@ -96,9 +108,7 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
 
   if (statement.orderBy.length > 0 && statement.orderByKw) {
     const orderExprs = statement.orderBy.map((item) => {
-      const direction = item.directionKw
-        ? ` ${kw(item.directionKw, ctx)}`
-        : '';
+      const direction = item.directionKw ? ` ${kw(item.directionKw, ctx)}` : '';
 
       return `${printInline(item.expr, ctx)}${direction}`;
     });
@@ -112,9 +122,7 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   }
 
   if (statement.having && statement.havingKw) {
-    lines.push(
-      ...printLeadingBool(statement.havingKw, statement.having, ctx),
-    );
+    lines.push(...printLeadingBool(statement.havingKw, statement.having, ctx));
   }
 
   if (statement.limit && statement.limitKw) {
@@ -135,15 +143,14 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
 function printInsert(statement: InsertStatement, ctx: PrintContext): string {
   const into = statement.intoKw ? ` ${kw(statement.intoKw, ctx)}` : '';
   const columns =
-    statement.columns.length > 0
-      ? ` (${statement.columns.join(', ')})`
-      : '';
+    statement.columns.length > 0 ? ` (${statement.columns.join(', ')})` : '';
   const lines = [
     `${kw(statement.insertKw, ctx)}${into} ${printTable(statement.table)}${columns}`,
   ];
 
   if (statement.select) {
     lines.push(printSelect(statement.select, ctx));
+
     return lines.join('\n');
   }
 
@@ -171,9 +178,7 @@ function printUpdate(statement: UpdateStatement, ctx: PrintContext): string {
   lines.push(...printAssignments(statement.setKw, statement.set, ctx));
 
   if (statement.where && statement.whereKw) {
-    lines.push(
-      ...printLeadingBool(statement.whereKw, statement.where, ctx),
-    );
+    lines.push(...printLeadingBool(statement.whereKw, statement.where, ctx));
   }
 
   return lines.join('\n');
@@ -185,9 +190,7 @@ function printDelete(statement: DeleteStatement, ctx: PrintContext): string {
   ];
 
   if (statement.where && statement.whereKw) {
-    lines.push(
-      ...printLeadingBool(statement.whereKw, statement.where, ctx),
-    );
+    lines.push(...printLeadingBool(statement.whereKw, statement.where, ctx));
   }
 
   return lines.join('\n');
@@ -379,6 +382,7 @@ function printHangingText(keyword: string, items: string[]): string[] {
 
   rest.forEach((item, index) => {
     const comma = index === rest.length - 1 ? '' : ',';
+
     lines.push(`${hang}${item}${comma}`);
   });
 
@@ -516,6 +520,7 @@ function printMultilineCall(
 
     if (isMultiline(arg)) {
       lines.push(`${printBlockExpr(arg, depth + 1, ctx)}${comma}`);
+
       return;
     }
 

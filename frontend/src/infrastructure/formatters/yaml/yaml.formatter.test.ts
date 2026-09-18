@@ -1,7 +1,16 @@
+/**
+ * Imports from packages
+ */
 import { describe, expect, it } from 'vitest';
 
+/**
+ * Imports from domain
+ */
 import { DEFAULT_YAML_OPTIONS } from '@domain/formatter/types';
 
+/**
+ * Imports from relative
+ */
 import { YamlFormatter } from './yaml.formatter';
 
 const formatter = new YamlFormatter();

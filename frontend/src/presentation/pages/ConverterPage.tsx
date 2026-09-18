@@ -1,10 +1,27 @@
+/**
+ * Imports from packages
+ */
 import { Navigate, useParams } from 'react-router-dom';
 
+/**
+ * Imports from app
+ */
 import { converterRegistry } from '@app/composition';
+
+/**
+ * Imports from domain
+ */
 import { CONVERTER_IDS, type ConverterId } from '@domain/converter/types';
+
+/**
+ * Imports from presentation
+ */
 import { SoonPanel } from '@presentation/components/SoonPanel';
 import { ConverterWorkspace } from '@presentation/features/converter/ConverterWorkspace';
 
+/**
+ * Страница конвертера, подставляет тип из маршрута
+ */
 export function ConverterPage() {
   const { type } = useParams();
   const fallback = converterRegistry.list().find((item) => item.available);

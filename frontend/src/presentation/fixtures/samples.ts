@@ -1,6 +1,12 @@
+/**
+ * Imports from domain
+ */
 import type { ConverterId } from '@domain/converter/types';
 import type { FormatterId } from '@domain/formatter/types';
 
+/**
+ * Примеры исходного текста для каждого форматтера
+ */
 export const SAMPLE_SOURCES: Record<FormatterId, string> = {
   json: `{
   zeta: 'Привет',
@@ -24,6 +30,9 @@ order by key, key4
 having SOMEKEY = 1 and key = 1`,
 };
 
+/**
+ * Примеры исходного текста для доступных конвертеров
+ */
 export const CONVERT_SAMPLES: Partial<Record<ConverterId, string>> = {
   'markdown-jira': `# Release notes
 

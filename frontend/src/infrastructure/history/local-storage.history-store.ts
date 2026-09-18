@@ -1,6 +1,9 @@
+/**
+ * Imports from domain
+ */
 import type { HistoryStore } from '@domain/history/ports';
-import type { HistoryEntry, HistoryScope } from '@domain/history/types';
 import { HISTORY_LIMIT } from '@domain/history/types';
+import type { HistoryEntry, HistoryScope } from '@domain/history/types';
 import type { KeyValueStorage } from '@domain/shared/key-value-storage';
 
 const STORAGE_KEY = 'so1-fmt.history.v1';
@@ -10,18 +13,39 @@ type HistoryBag = Partial<Record<HistoryScope, HistoryEntry[]>>;
 export class LocalStorageHistoryStore implements HistoryStore {
   private readonly storage: KeyValueStorage;
 
+  /**
+   * Создает хранилище истории поверх key-value хранилища
+   *
+   * @param storage Реализация постоянного хранилища
+   */
   constructor(storage: KeyValueStorage) {
     this.storage = storage;
   }
 
+  /**
+   * Возвращает сохраненные записи для указанной области
+   *
+   * @param scope Область истории, например тип форматтера или конвертера
+   */
   list(scope: HistoryScope): HistoryEntry[] {
     return this.read()[scope] ?? [];
   }
 
+  /**
+   * Возвращает самую свежую запись для указанной области
+   *
+   * @param scope Область истории, например тип форматтера или конвертера
+   */
   latest(scope: HistoryScope): HistoryEntry | undefined {
     return this.list(scope)[0];
   }
 
+  /**
+   * Сохраняет успешный ввод и вывод в начало истории области
+   *
+   * @param scope Область истории, например тип форматтера или конвертера
+   * @param input Исходный текст и полученный результат
+   */
   remember(
     scope: HistoryScope,
     input: { source: string; output: string },

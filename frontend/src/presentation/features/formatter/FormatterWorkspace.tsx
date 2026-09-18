@@ -1,9 +1,22 @@
+/**
+ * Imports from packages
+ */
 import { Form, Formik, type FormikProps } from 'formik';
 import { useEffect, useMemo, useRef } from 'react';
 
+/**
+ * Imports from app
+ */
 import { formatterRegistry, historyStore } from '@app/composition';
+
+/**
+ * Imports from application
+ */
 import { formatText } from '@application/format-text';
-import type { IndentStyle } from '@domain/shared/indent';
+
+/**
+ * Imports from domain
+ */
 import {
   defaultOptionsFor,
   type FormatterId,
@@ -13,6 +26,11 @@ import {
   type YamlNullStyle,
   type YamlQuoting,
 } from '@domain/formatter/types';
+import type { IndentStyle } from '@domain/shared/indent';
+
+/**
+ * Imports from presentation
+ */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
@@ -31,8 +49,8 @@ import {
   setSource,
 } from '@presentation/store/workspace.slice';
 import {
-  TUI_COMMAND_EVENT,
   dispatchTuiCommand,
+  TUI_COMMAND_EVENT,
   type TuiCommand,
 } from '@presentation/tui/commands';
 
@@ -57,6 +75,11 @@ interface FormatterFormValues {
   keywordCase: SqlKeywordCase;
 }
 
+/**
+ * Рабочая область форматтера: ввод, настройки, вывод и история
+ *
+ * @param formatterId Идентификатор активного форматтера
+ */
 export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   const dispatch = useAppDispatch();
   const output = useAppSelector((state) => state.workspace.output);
@@ -90,13 +113,16 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
     const run = async (command: TuiCommand) => {
       if (command === 'format') {
         await formikRef.current?.submitForm();
+
         return;
       }
 
       if (command === 'sample') {
         const sample = SAMPLE_SOURCES[formatterId];
+
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
+
         return;
       }
 
@@ -162,6 +188,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
         if (result.ok) {
           dispatch(setOutput(result.value));
           remember(values.source, result.value);
+
           return;
         }
 
@@ -209,10 +236,16 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
             </AsciiFrame>
 
             <div className="formatter-workspace__gutter">
-              <button type="submit" className="tui-inline-cmd tui-inline-cmd--block">
+              <button
+                type="submit"
+                className="tui-inline-cmd tui-inline-cmd--block"
+              >
                 &quot;Format&quot;
               </button>
-              <span className="formatter-workspace__gutter-arrow" aria-hidden="true">
+              <span
+                className="formatter-workspace__gutter-arrow"
+                aria-hidden="true"
+              >
                 {'->'}
               </span>
             </div>

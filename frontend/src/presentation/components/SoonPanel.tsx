@@ -1,3 +1,6 @@
+/**
+ * Imports from presentation
+ */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 
 interface SoonPanelProps {
@@ -6,6 +9,13 @@ interface SoonPanelProps {
   message: string;
 }
 
+/**
+ * Заглушка для раздела, который еще не готов
+ *
+ * @param title Заголовок панели
+ * @param hint Краткая подпись рядом с заголовком
+ * @param message Поясняющий текст для пользователя
+ */
 export function SoonPanel({ title, hint, message }: SoonPanelProps) {
   return (
     <AsciiFrame title={title} hint={hint}>

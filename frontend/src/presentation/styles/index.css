@@ -239,7 +239,7 @@ html[data-window='true'] .term-window__chrome {
 }
 
 .tui-help--block {
-  margin-bottom: 0.90rem;
+  margin-bottom: 0.9rem;
   white-space: normal;
 }
 
@@ -604,7 +604,7 @@ html[data-ascii='false'] .tui-panel__rule {
 .tui-fields {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem 0.90rem;
+  gap: 0.45rem 0.9rem;
   align-items: center;
 }
 
@@ -635,11 +635,8 @@ html[data-ascii='false'] .tui-panel__rule {
   font-size: 16px;
   padding: 0.1rem 1.1rem 0.1rem 0.1rem;
   min-height: 32px;
-  background-image: linear-gradient(
-      45deg,
-      transparent 50%,
-      var(--app-label) 50%
-    ),
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--app-label) 50%),
     linear-gradient(135deg, var(--app-label) 50%, transparent 50%);
   background-position:
     calc(100% - 10px) 50%,

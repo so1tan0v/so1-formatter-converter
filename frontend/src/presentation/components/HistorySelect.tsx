@@ -1,3 +1,6 @@
+/**
+ * Imports from domain
+ */
 import type { HistoryEntry } from '@domain/history/types';
 
 interface HistorySelectProps {
@@ -6,6 +9,13 @@ interface HistorySelectProps {
   onSelect: (entry: HistoryEntry) => void;
 }
 
+/**
+ * Список недавних вводов для выбранного типа
+ *
+ * @param entries Список записей истории
+ * @param currentSource Текущий исходный текст в редакторе
+ * @param onSelect Обработчик выбора записи из списка
+ */
 export function HistorySelect({
   entries,
   currentSource,

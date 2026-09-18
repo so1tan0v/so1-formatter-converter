@@ -1,3 +1,6 @@
+/**
+ * Imports from packages
+ */
 import type { ReactNode } from 'react';
 
 interface AsciiFrameProps {
@@ -8,6 +11,15 @@ interface AsciiFrameProps {
   fill?: boolean;
 }
 
+/**
+ * Панель с ASCII-рамкой для блока рабочей области
+ *
+ * @param title Заголовок панели
+ * @param hint Необязательная подпись рядом с заголовком
+ * @param actions Дополнительные элементы в шапке панели
+ * @param children Содержимое панели
+ * @param fill Признак растягивания панели на доступную высоту
+ */
 export function AsciiFrame({
   title,
   hint,
@@ -16,9 +28,7 @@ export function AsciiFrame({
   fill = false,
 }: AsciiFrameProps) {
   return (
-    <section
-      className={`tui-panel ${fill ? 'tui-panel--fill' : ''}`.trim()}
-    >
+    <section className={`tui-panel ${fill ? 'tui-panel--fill' : ''}`.trim()}>
       <header className="tui-panel__bar">
         <span className="tui-panel__corner" aria-hidden="true">
           ┌

@@ -1,3 +1,6 @@
+/**
+ * Imports from packages
+ */
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface TerminalButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -6,6 +9,16 @@ interface TerminalButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'ghost';
 }
 
+/**
+ * Кнопка в стиле терминального интерфейса
+ *
+ * @param children Содержимое кнопки
+ * @param hotkey Необязательная подпись горячей клавиши
+ * @param variant Визуальный вариант кнопки
+ * @param className Дополнительные CSS-классы
+ * @param type HTML-тип кнопки
+ * @param props Остальные атрибуты HTML-кнопки
+ */
 export function TerminalButton({
   children,
   hotkey,

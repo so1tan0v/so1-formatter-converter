@@ -1,7 +1,16 @@
+/**
+ * Imports from packages
+ */
 import { describe, expect, it } from 'vitest';
 
+/**
+ * Imports from domain
+ */
 import { DEFAULT_JSON_OPTIONS } from '@domain/formatter/types';
 
+/**
+ * Imports from relative
+ */
 import { JsonFormatter } from './json.formatter';
 
 const formatter = new JsonFormatter();

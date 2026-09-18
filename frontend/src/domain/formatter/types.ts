@@ -1,9 +1,18 @@
+/**
+ * Imports from domain
+ */
 import type { IndentStyle } from '@domain/shared/indent';
 
+/**
+ * Идентификаторы доступных форматтеров
+ */
 export const FORMATTER_IDS = ['json', 'yaml', 'sql'] as const;
 
 export type FormatterId = (typeof FORMATTER_IDS)[number];
 
+/**
+ * Режимы вывода JSON и YAML: многострочный, однострочный и экранированная строка
+ */
 export const OUTPUT_MODES = ['pretty', 'compact', 'escaped'] as const;
 
 export type OutputMode = (typeof OUTPUT_MODES)[number];
@@ -32,6 +41,9 @@ export interface YamlFormatOptions {
   nullStyle: YamlNullStyle;
 }
 
+/**
+ * Варианты регистра SQL-ключевых слов: верхний, нижний или как в исходнике
+ */
 export const SQL_KEYWORD_CASES = ['upper', 'lower', 'preserve'] as const;
 
 export type SqlKeywordCase = (typeof SQL_KEYWORD_CASES)[number];
@@ -49,6 +61,9 @@ export type FormatterOptionsMap = {
 
 export type FormatterOptions = FormatterOptionsMap[FormatterId];
 
+/**
+ * Настройки JSON-форматтера по умолчанию
+ */
 export const DEFAULT_JSON_OPTIONS: JsonFormatOptions = {
   indent: '2-space',
   mode: 'pretty',
@@ -58,6 +73,9 @@ export const DEFAULT_JSON_OPTIONS: JsonFormatOptions = {
   trailingNewline: false,
 };
 
+/**
+ * Настройки YAML-форматтера по умолчанию
+ */
 export const DEFAULT_YAML_OPTIONS: YamlFormatOptions = {
   indent: '2-space',
   mode: 'pretty',
@@ -70,11 +88,19 @@ export const DEFAULT_YAML_OPTIONS: YamlFormatOptions = {
   nullStyle: 'null',
 };
 
+/**
+ * Настройки SQL-форматтера по умолчанию
+ */
 export const DEFAULT_SQL_OPTIONS: SqlFormatOptions = {
   indent: '4-space',
   keywordCase: 'upper',
 };
 
+/**
+ * Возвращает настройки форматирования по умолчанию для выбранного типа
+ *
+ * @param id Идентификатор форматтера
+ */
 export function defaultOptionsFor(
   id: FormatterId,
 ): FormatterOptionsMap[FormatterId] {

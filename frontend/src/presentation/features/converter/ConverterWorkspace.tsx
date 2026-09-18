@@ -1,9 +1,27 @@
+/**
+ * Imports from packages
+ */
 import { Form, Formik, type FormikProps } from 'formik';
 import { useEffect, useMemo, useRef } from 'react';
 
+/**
+ * Imports from app
+ */
 import { converterRegistry, historyStore } from '@app/composition';
+
+/**
+ * Imports from application
+ */
 import { convertText } from '@application/convert-text';
+
+/**
+ * Imports from domain
+ */
 import type { ConverterId } from '@domain/converter/types';
+
+/**
+ * Imports from presentation
+ */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
@@ -17,8 +35,8 @@ import {
   setSource,
 } from '@presentation/store/workspace.slice';
 import {
-  TUI_COMMAND_EVENT,
   dispatchTuiCommand,
+  TUI_COMMAND_EVENT,
   type TuiCommand,
 } from '@presentation/tui/commands';
 
@@ -30,6 +48,11 @@ interface ConverterFormValues {
   source: string;
 }
 
+/**
+ * Рабочая область конвертера: ввод, преобразование, вывод и история
+ *
+ * @param converterId Идентификатор активного конвертера
+ */
 export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
   const dispatch = useAppDispatch();
   const output = useAppSelector((state) => state.workspace.output);
@@ -61,12 +84,14 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
     const run = async (command: TuiCommand) => {
       if (command === 'convert' || command === 'format') {
         await formikRef.current?.submitForm();
+
         return;
       }
 
       if (command === 'sample') {
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
+
         return;
       }
 
@@ -127,6 +152,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
         if (result.ok) {
           dispatch(setOutput(result.value));
           remember(values.source, result.value);
+
           return;
         }
 
@@ -175,7 +201,10 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
               >
                 &quot;Convert&quot;
               </button>
-              <span className="formatter-workspace__gutter-arrow" aria-hidden="true">
+              <span
+                className="formatter-workspace__gutter-arrow"
+                aria-hidden="true"
+              >
                 {'->'}
               </span>
             </div>

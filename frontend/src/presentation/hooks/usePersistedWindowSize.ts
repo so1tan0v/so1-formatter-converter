@@ -1,3 +1,6 @@
+/**
+ * Imports from packages
+ */
 import {
   useCallback,
   useEffect,
@@ -18,6 +21,11 @@ export interface WindowSize {
   height: number;
 }
 
+/**
+ * Хранит размер окна и позволяет менять его перетаскиванием
+ *
+ * @param enabled Признак, что изменение размера разрешено
+ */
 export function usePersistedWindowSize(enabled: boolean): {
   ref: RefObject<HTMLDivElement | null>;
   size: WindowSize;
@@ -26,6 +34,7 @@ export function usePersistedWindowSize(enabled: boolean): {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<WindowSize>(() => readStoredSize());
   const sizeRef = useRef(size);
+
   sizeRef.current = size;
 
   const onGripPointerDown = useCallback(
@@ -163,7 +172,10 @@ function clampSize(size: WindowSize): WindowSize {
   const max = maxSize();
 
   return {
-    width: Math.min(max.width, Math.max(MIN_SIZE.width, Math.round(size.width))),
+    width: Math.min(
+      max.width,
+      Math.max(MIN_SIZE.width, Math.round(size.width)),
+    ),
     height: Math.min(
       max.height,
       Math.max(MIN_SIZE.height, Math.round(size.height)),

@@ -1,13 +1,16 @@
+/**
+ * Imports from domain
+ */
 import type { FormatterId } from '@domain/formatter/types';
 
 export type EditorLanguage =
-  | 'json'
-  | 'json5'
-  | 'yaml'
-  | 'sql'
-  | 'markdown'
-  | 'plaintext';
+  'json' | 'json5' | 'yaml' | 'sql' | 'markdown' | 'plaintext';
 
+/**
+ * Возвращает язык подсветки для поля ввода форматтера
+ *
+ * @param id Идентификатор форматтера
+ */
 export function inputLanguageFor(id: FormatterId): EditorLanguage {
   switch (id) {
     case 'json':
@@ -19,6 +22,12 @@ export function inputLanguageFor(id: FormatterId): EditorLanguage {
   }
 }
 
+/**
+ * Возвращает язык подсветки для поля вывода форматтера
+ *
+ * @param id Идентификатор форматтера
+ * @param hasError Признак ошибки форматирования
+ */
 export function outputLanguageFor(
   id: FormatterId,
   hasError: boolean,
