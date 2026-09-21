@@ -1,7 +1,7 @@
 /**
  * Imports from packages
  */
-import { Navigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 /**
  * Imports from app
@@ -18,6 +18,7 @@ import { CONVERTER_IDS, type ConverterId } from '@domain/converter/types';
  */
 import { SoonPanel } from '@presentation/components/SoonPanel';
 import { ConverterWorkspace } from '@presentation/features/converter/ConverterWorkspace';
+import { Redirect } from '@presentation/routing/Redirect';
 
 /**
  * Страница конвертера, подставляет тип из маршрута
@@ -25,25 +26,20 @@ import { ConverterWorkspace } from '@presentation/features/converter/ConverterWo
 export function ConverterPage() {
   const { type } = useParams();
   const fallback = converterRegistry.list().find((item) => item.available);
+  const fallbackPath = `/converter/${fallback?.id ?? 'markdown-jira'}`;
 
   if (!type) {
-    return (
-      <Navigate to={`/converter/${fallback?.id ?? 'markdown-jira'}`} replace />
-    );
+    return <Redirect to={fallbackPath} />;
   }
 
   if (!isConverterId(type)) {
-    return (
-      <Navigate to={`/converter/${fallback?.id ?? 'markdown-jira'}`} replace />
-    );
+    return <Redirect to={fallbackPath} />;
   }
 
   const converter = converterRegistry.get(type);
 
   if (!converter) {
-    return (
-      <Navigate to={`/converter/${fallback?.id ?? 'markdown-jira'}`} replace />
-    );
+    return <Redirect to={fallbackPath} />;
   }
 
   if (!converter.available) {

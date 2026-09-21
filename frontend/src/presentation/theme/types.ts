@@ -1,4 +1,7 @@
+export type ThemeColorScheme = 'dark' | 'light';
+
 export interface ThemeTokens {
+  stage: string;
   bg: string;
   bgElevated: string;
   fg: string;
@@ -28,6 +31,7 @@ export interface ThemeDecorations {
 export interface AppTheme {
   id: string;
   name: string;
+  colorScheme: ThemeColorScheme;
   tokens: ThemeTokens;
   decorations: ThemeDecorations;
 }

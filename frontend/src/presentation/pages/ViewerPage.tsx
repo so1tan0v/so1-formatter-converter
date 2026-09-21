@@ -1,7 +1,7 @@
 /**
  * Imports from packages
  */
-import { Navigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 /**
  * Imports from app
@@ -17,6 +17,7 @@ import { VIEWER_IDS, type ViewerId } from '@domain/viewer/types';
  * Imports from presentation
  */
 import { SoonPanel } from '@presentation/components/SoonPanel';
+import { Redirect } from '@presentation/routing/Redirect';
 
 /**
  * Страница просмотрщика, пока показывает заглушку
@@ -24,13 +25,14 @@ import { SoonPanel } from '@presentation/components/SoonPanel';
 export function ViewerPage() {
   const { type } = useParams();
   const fallback = viewerRegistry.list()[0];
+  const fallbackPath = `/viewer/${fallback?.id ?? 'markdown'}`;
 
   if (!type) {
-    return <Navigate to={`/viewer/${fallback?.id ?? 'markdown'}`} replace />;
+    return <Redirect to={fallbackPath} />;
   }
 
   if (!isViewerId(type)) {
-    return <Navigate to={`/viewer/${fallback?.id ?? 'markdown'}`} replace />;
+    return <Redirect to={fallbackPath} />;
   }
 
   const viewer = viewerRegistry.get(type);

@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --app-stage: #2c2c2e;
   --app-bg: #191919;
   --app-bg-elevated: #191919;
   --app-fg: #d5dae4;
@@ -35,7 +36,7 @@ body,
 
 body {
   margin: 0;
-  background: #2c2c2e;
+  background: var(--app-stage);
   color: var(--app-fg);
   font-family: var(--app-font-mono);
   font-size: var(--app-font-size);
@@ -102,7 +103,7 @@ html[data-scanlines='true'] body::after {
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--app-border);
   overflow: hidden;
 }
 
@@ -212,7 +213,7 @@ html[data-window='true'] .term-window__chrome {
 }
 
 .tui-prompt__host {
-  color: #fff;
+  color: var(--app-fg);
 }
 
 .tui-prompt__hash {
@@ -799,4 +800,35 @@ html[data-ascii='false'] .tui-panel__rule {
   .tui-panel__hint {
     display: none;
   }
+}
+
+html[data-embed='true'] body {
+  background: var(--app-bg);
+}
+
+html[data-embed='true'] .app-stage {
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+html[data-embed='true'] .term-window,
+html[data-embed='true'][data-window='true'] .term-window,
+html[data-embed='true'] .term-window--phone {
+  border-radius: 0;
+  box-shadow: none;
+  border: 0;
+  width: 100% !important;
+  height: 100dvh !important;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+}
+
+html[data-embed='true'] .term-window__chrome,
+html[data-embed='true'][data-window='true'] .term-window__chrome,
+html[data-embed='true'] .term-window__grip,
+html[data-embed='true'] .tui-prompt {
+  display: none;
 }

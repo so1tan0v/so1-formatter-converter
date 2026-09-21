@@ -20,8 +20,10 @@ export const MONACO_THEME_NAME = 'app-ui';
  * @param theme Активная тема приложения
  */
 export function defineMonacoTheme(monaco: Monaco, theme: AppTheme): void {
+  const isLight = theme.colorScheme === 'light';
+
   monaco.editor.defineTheme(MONACO_THEME_NAME, {
-    base: 'vs-dark',
+    base: isLight ? 'vs' : 'vs-dark',
     inherit: true,
     rules: [
       {
@@ -44,7 +46,7 @@ export function defineMonacoTheme(monaco: Monaco, theme: AppTheme): void {
       'editorLineNumber.activeForeground': theme.tokens.label,
       'editor.selectionBackground': `${theme.tokens.accentDim}99`,
       'editor.inactiveSelectionBackground': `${theme.tokens.accentDim}55`,
-      'editor.lineHighlightBackground': '#ffffff08',
+      'editor.lineHighlightBackground': isLight ? '#00000008' : '#ffffff08',
       'editorGutter.background': theme.tokens.bg,
       'editorWidget.background': theme.tokens.chrome,
       'editorWidget.border': theme.tokens.border,

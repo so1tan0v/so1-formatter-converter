@@ -9,7 +9,9 @@ import type { AppTheme } from '@presentation/theme/types';
 export const terminalTheme: AppTheme = {
   id: 'terminal',
   name: 'Terminal',
+  colorScheme: 'dark',
   tokens: {
+    stage: '#2c2c2e',
     bg: '#191919',
     bgElevated: '#191919',
     fg: '#d5dae4',

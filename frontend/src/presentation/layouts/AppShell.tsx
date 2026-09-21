@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 /**
  * Imports from presentation
  */
+import { useEmbed } from '@presentation/embed/useEmbed';
 import { useMediaQuery } from '@presentation/hooks/useMediaQuery';
 import { usePersistedWindowSize } from '@presentation/hooks/usePersistedWindowSize';
 import { Footer } from '@presentation/layouts/Footer';
@@ -21,8 +22,10 @@ interface AppShellProps {
  * @param children Содержимое рабочей области
  */
 export function AppShell({ children }: AppShellProps) {
+  const { isEmbed } = useEmbed();
   const isPhone = useMediaQuery('(max-width: 767.98px)');
-  const { size, onGripPointerDown } = usePersistedWindowSize(!isPhone);
+  const framed = !isPhone && !isEmbed;
+  const { size, onGripPointerDown } = usePersistedWindowSize(framed);
 
   return (
     <div className="app-stage">
@@ -30,24 +33,26 @@ export function AppShell({ children }: AppShellProps) {
         Skip to content
       </a>
       <div
-        className={`term-window ${isPhone ? 'term-window--phone' : ''}`.trim()}
+        className={`term-window ${isPhone || isEmbed ? 'term-window--phone' : ''}`.trim()}
         style={
-          isPhone
-            ? undefined
-            : {
+          framed
+            ? {
                 width: size.width,
                 height: size.height,
               }
+            : undefined
         }
       >
-        <div className="term-window__chrome" aria-hidden="true">
-          <span className="term-window__dots">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="term-window__title">so1tan0v@fmt:~</span>
-        </div>
+        {isEmbed ? null : (
+          <div className="term-window__chrome" aria-hidden="true">
+            <span className="term-window__dots">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="term-window__title">so1tan0v@fmt:~</span>
+          </div>
+        )}
         <div className="term-screen">
           <Header />
           <main id="main" className="term-screen__main">
@@ -55,14 +60,14 @@ export function AppShell({ children }: AppShellProps) {
           </main>
           <Footer />
         </div>
-        {isPhone ? null : (
+        {framed ? (
           <button
             type="button"
             className="term-window__grip"
             aria-label="Resize window"
             onPointerDown={onGripPointerDown}
           />
-        )}
+        ) : null}
       </div>
     </div>
   );

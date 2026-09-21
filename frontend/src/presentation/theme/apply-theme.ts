@@ -4,6 +4,7 @@
 import type { AppTheme } from '@presentation/theme/types';
 
 const tokenVars: Record<keyof AppTheme['tokens'], string> = {
+  stage: '--app-stage',
   bg: '--app-bg',
   bgElevated: '--app-bg-elevated',
   fg: '--app-fg',
@@ -32,10 +33,12 @@ export function applyTheme(theme: AppTheme): void {
   const root = document.documentElement;
 
   root.dataset.theme = theme.id;
+  root.dataset.scheme = theme.colorScheme;
   root.dataset.ascii = String(theme.decorations.asciiFrames);
   root.dataset.scanlines = String(theme.decorations.scanlines);
   root.dataset.crt = String(theme.decorations.crtGlow);
   root.dataset.window = String(theme.decorations.windowChrome);
+  root.style.colorScheme = theme.colorScheme;
 
   for (const [token, cssVar] of Object.entries(tokenVars)) {
     root.style.setProperty(

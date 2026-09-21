@@ -13,10 +13,16 @@ import {
 } from '@app/composition';
 
 /**
+ * Imports from presentation
+ */
+import { useEmbed } from '@presentation/embed/useEmbed';
+
+/**
  * Верхняя панель с разделами Formatter, Converter и Viewer
  */
 export function Header() {
   const location = useLocation();
+  const { isEmbed } = useEmbed();
   const formatterMatch = useMatch('/formatter/:type');
   const converterMatch = useMatch('/converter/:type');
   const viewerMatch = useMatch('/viewer/:type');
@@ -28,19 +34,22 @@ export function Header() {
     : converterActive
       ? `converter ${converterMatch?.params.type ?? 'markdown-jira'}`
       : `viewer ${viewerMatch?.params.type ?? 'markdown'}`;
+  const search = location.search;
 
   return (
     <header className="tui-header">
-      <p className="tui-prompt">
-        <span className="tui-prompt__host">[so1tan0v@fmt]</span>{' '}
-        <span className="tui-prompt__hash">#</span>{' '}
-        <span className="tui-prompt__cmd">{command}</span>
-        <span className="tui-cursor" aria-hidden="true" />
-      </p>
+      {isEmbed ? null : (
+        <p className="tui-prompt">
+          <span className="tui-prompt__host">[so1tan0v@fmt]</span>{' '}
+          <span className="tui-prompt__hash">#</span>{' '}
+          <span className="tui-prompt__cmd">{command}</span>
+          <span className="tui-cursor" aria-hidden="true" />
+        </p>
+      )}
       <nav className="tui-menu" aria-label="Modes">
         <div className="tui-menu__row">
           <NavLink
-            to="/formatter/json"
+            to={{ pathname: '/formatter/json', search }}
             className={() =>
               `tui-tab ${formatterActive ? 'is-active' : ''}`.trim()
             }
@@ -48,7 +57,7 @@ export function Header() {
             Formatter
           </NavLink>
           <NavLink
-            to="/converter/markdown-jira"
+            to={{ pathname: '/converter/markdown-jira', search }}
             className={() =>
               `tui-tab ${converterActive ? 'is-active' : ''}`.trim()
             }
@@ -56,7 +65,7 @@ export function Header() {
             Converter
           </NavLink>
           <NavLink
-            to="/viewer/markdown"
+            to={{ pathname: '/viewer/markdown', search }}
             className={() =>
               `tui-tab ${viewerActive ? 'is-active' : ''}`.trim()
             }
@@ -69,7 +78,7 @@ export function Header() {
             {formatterRegistry.list().map((formatter) => (
               <NavLink
                 key={formatter.id}
-                to={`/formatter/${formatter.id}`}
+                to={{ pathname: `/formatter/${formatter.id}`, search }}
                 className={({ isActive }) =>
                   `tui-type ${isActive ? 'is-active' : ''}`.trim()
                 }
@@ -85,7 +94,7 @@ export function Header() {
               converter.available ? (
                 <NavLink
                   key={converter.id}
-                  to={`/converter/${converter.id}`}
+                  to={{ pathname: `/converter/${converter.id}`, search }}
                   className={({ isActive }) =>
                     `tui-type ${isActive ? 'is-active' : ''}`.trim()
                   }

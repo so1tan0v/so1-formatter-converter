@@ -11,10 +11,12 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 /**
  * Imports from presentation
  */
+import { EmbedProvider } from '@presentation/embed/EmbedProvider';
+import { applyEmbedFlag, readBootAppearance } from '@presentation/embed/query';
 import { setupMonaco } from '@presentation/editors/monaco/setup-monaco';
 import { store } from '@presentation/store';
 import { applyTheme } from '@presentation/theme/apply-theme';
-import { defaultTheme } from '@presentation/theme/catalog';
+import { getTheme } from '@presentation/theme/catalog';
 import { ThemeProvider } from '@presentation/theme/ThemeProvider';
 import '@presentation/styles/index.css';
 
@@ -23,16 +25,21 @@ import '@presentation/styles/index.css';
  */
 import { App } from './App';
 
-applyTheme(defaultTheme);
+const bootAppearance = readBootAppearance(window.location.search);
+
+applyEmbedFlag(bootAppearance.isEmbed);
+applyTheme(getTheme(bootAppearance.themeId));
 setupMonaco();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <ThemeProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+      <ThemeProvider initialThemeId={bootAppearance.themeId}>
+        <EmbedProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </EmbedProvider>
       </ThemeProvider>
     </Provider>
   </StrictMode>,

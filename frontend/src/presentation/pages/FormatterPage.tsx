@@ -1,7 +1,7 @@
 /**
  * Imports from packages
  */
-import { Navigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 /**
  * Imports from domain
@@ -12,6 +12,7 @@ import { FORMATTER_IDS, type FormatterId } from '@domain/formatter/types';
  * Imports from presentation
  */
 import { FormatterWorkspace } from '@presentation/features/formatter/FormatterWorkspace';
+import { Redirect } from '@presentation/routing/Redirect';
 
 /**
  * Страница форматтера, подставляет тип из маршрута
@@ -20,7 +21,7 @@ export function FormatterPage() {
   const { type } = useParams();
 
   if (!isFormatterId(type)) {
-    return <Navigate to="/formatter/json" replace />;
+    return <Redirect to="/formatter/json" />;
   }
 
   return <FormatterWorkspace formatterId={type} />;
