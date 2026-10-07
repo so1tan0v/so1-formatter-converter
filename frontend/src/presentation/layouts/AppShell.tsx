@@ -11,6 +11,7 @@ import { useMediaQuery } from '@presentation/hooks/useMediaQuery';
 import { usePersistedWindowSize } from '@presentation/hooks/usePersistedWindowSize';
 import { Footer } from '@presentation/layouts/Footer';
 import { Header } from '@presentation/layouts/Header';
+import { usePageMeta } from '@presentation/seo/usePageMeta';
 
 interface AppShellProps {
   children: ReactNode;
@@ -23,6 +24,8 @@ interface AppShellProps {
  */
 export function AppShell({ children }: AppShellProps) {
   const { isEmbed } = useEmbed();
+
+  usePageMeta();
   const isPhone = useMediaQuery('(max-width: 767.98px)');
   const framed = !isPhone && !isEmbed;
   const { size, onGripPointerDown } = usePersistedWindowSize(framed);

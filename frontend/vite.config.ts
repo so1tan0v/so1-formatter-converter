@@ -2,12 +2,29 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
+
+import { yandexMetrikaCounterHtml } from './src/infrastructure/analytics/yandex-metrika';
 
 const rootDir = fileURLToPath(new URL('.', import.meta.url));
 
+/**
+ * Вставляет счётчик Метрики в исходный HTML, чтобы номер жил в одном модуле
+ */
+function yandexMetrikaHtmlPlugin(): Plugin {
+  return {
+    name: 'yandex-metrika-html',
+    transformIndexHtml(html) {
+      const snippet = yandexMetrikaCounterHtml();
+
+      return html.replace('<body>', `<body>\n${snippet}`);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), yandexMetrikaHtmlPlugin()],
   worker: {
     format: 'es',
   },
