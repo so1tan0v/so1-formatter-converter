@@ -49,10 +49,11 @@ function upsertMeta(
 
 function upsertLink(rel: string, href: string): void {
   const selector = `link[rel="${rel}"]`;
-  let element = document.head.querySelector(selector);
+  const found = document.head.querySelector(selector);
+  const element =
+    found instanceof HTMLLinkElement ? found : document.createElement('link');
 
-  if (!(element instanceof HTMLLinkElement)) {
-    element = document.createElement('link');
+  if (!(found instanceof HTMLLinkElement)) {
     element.rel = rel;
     document.head.append(element);
   }
