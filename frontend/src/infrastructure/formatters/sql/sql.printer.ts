@@ -76,11 +76,19 @@ function printStatement(statement: SqlStatement, ctx: PrintContext): string {
 
 function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   const lines: string[] = [];
-  const select = statement.distinctKw
-    ? `${kw(statement.selectKw, ctx)} ${kw(statement.distinctKw, ctx)}`
-    : kw(statement.selectKw, ctx);
+  const selectParts = [kw(statement.selectKw, ctx)];
 
-  lines.push(select);
+  if (statement.distinctKw) {
+    selectParts.push(kw(statement.distinctKw, ctx));
+  }
+
+  if (statement.topKw && statement.top) {
+    selectParts.push(
+      `${kw(statement.topKw, ctx)} ${printInline(statement.top, ctx)}`,
+    );
+  }
+
+  lines.push(selectParts.join(' '));
   lines.push(...printSelectList(statement.columns, ctx));
 
   if (statement.from && statement.fromKw) {
@@ -90,6 +98,12 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   for (const join of statement.joins) {
     lines.push(printJoinHeader(join, ctx));
     lines.push(...printJoinOn(join, ctx));
+  }
+
+  if (statement.prewhere && statement.prewhereKw) {
+    lines.push(
+      ...printLeadingBool(statement.prewhereKw, statement.prewhere, ctx),
+    );
   }
 
   if (statement.where && statement.whereKw) {
@@ -126,12 +140,14 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   }
 
   if (statement.limit && statement.limitKw) {
-    lines.push(
-      `${kw(statement.limitKw, ctx)} ${printInline(statement.limit, ctx)}`,
-    );
+    const limitValue = statement.limitComma && statement.offset
+      ? `${printInline(statement.limit, ctx)}, ${printInline(statement.offset, ctx)}`
+      : printInline(statement.limit, ctx);
+
+    lines.push(`${kw(statement.limitKw, ctx)} ${limitValue}`);
   }
 
-  if (statement.offset && statement.offsetKw) {
+  if (statement.offset && statement.offsetKw && !statement.limitComma) {
     lines.push(
       `${kw(statement.offsetKw, ctx)} ${printInline(statement.offset, ctx)}`,
     );
@@ -331,6 +347,12 @@ function printJoinHeader(join: JoinClause, ctx: PrintContext): string {
 }
 
 function printJoinOn(join: JoinClause, ctx: PrintContext): string[] {
+  if (join.usingKw && join.using && join.using.length > 0) {
+    return [
+      `${ctx.indent}${kw(join.usingKw, ctx)} (${join.using.join(', ')})`,
+    ];
+  }
+
   if (!join.on || !join.onKw) {
     return [];
   }
@@ -539,6 +561,8 @@ function printInline(expr: SqlExpr, ctx: PrintContext): string {
     case 'ident':
       return expr.parts.join('.');
     case 'number':
+      return expr.value;
+    case 'placeholder':
       return expr.value;
     case 'string':
       return expr.value;

@@ -47,7 +47,7 @@ export function ConverterPage() {
       <SoonPanel
         title="Converter"
         hint={converter.label}
-        message={`${converter.label} is not ready yet. Markdown → Jira is available now.`}
+        message={`${converter.label} is not ready yet.`}
       />
     );
   }

@@ -3,7 +3,8 @@
  */
 export const HISTORY_LIMIT = 5;
 
-export type HistoryScope = `formatter:${string}` | `converter:${string}`;
+export type HistoryScope =
+  `formatter:${string}` | `converter:${string}` | `viewer:${string}`;
 
 export interface HistoryEntry {
   id: string;

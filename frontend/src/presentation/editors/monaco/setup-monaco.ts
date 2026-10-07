@@ -22,4 +22,13 @@ export function setupMonaco(): void {
 
   Object.assign(globalThis, { MonacoEnvironment: monacoEnvironment });
   loader.config({ monaco });
+  void loader.init().then((instance) => {
+    instance.languages.json.jsonDefaults.setDiagnosticsOptions({
+      validate: false,
+      allowComments: true,
+      trailingCommas: 'ignore',
+      comments: 'ignore',
+      schemaValidation: 'ignore',
+    });
+  });
 }

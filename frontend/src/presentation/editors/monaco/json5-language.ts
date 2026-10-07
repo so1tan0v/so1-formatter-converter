@@ -20,31 +20,59 @@ export function registerJson5Language(monaco: Monaco): void {
   monaco.languages.register({ id: 'json5' });
 
   monaco.languages.setMonarchTokensProvider('json5', {
+    defaultToken: '',
+    tokenPostfix: '.json5',
     tokenizer: {
       root: [
-        [/\/\/.*$/, 'comment'],
-        [/\/\*/, 'comment', '@comment'],
-        [/"([^"\\]|\\.)*"|'([^'\\]|\\.)*'/, 'string'],
-        [/-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/, 'number'],
+        { include: '@whitespace' },
+        { include: '@comments' },
         [/[{}[\]]/, 'delimiter.bracket'],
         [/[,:]/, 'delimiter'],
-        [/\b(?:true|false|null|undefined)\b/, 'keyword'],
-        [/[A-Za-z_$][\w$]*/, 'type'],
+        [/-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/, 'number'],
+        [/\b(?:true|false|null|undefined|NaN|Infinity)\b/, 'keyword'],
+        [/"/, 'string', '@stringDouble'],
+        [/'/, 'string', '@stringSingle'],
+        [/[A-Za-z_][\w]*/, 'type'],
       ],
-      comment: [
-        [/[^*]+/, 'comment'],
+      whitespace: [[/[ \t\r\n]+/, 'white']],
+      comments: [
+        [/\/\/.*$/, 'comment'],
+        [/\/\*/, 'comment', '@commentBody'],
+      ],
+      commentBody: [
+        [/[^/*]+/, 'comment'],
         [/\*\//, 'comment', '@pop'],
         [/./, 'comment'],
+      ],
+      stringDouble: [
+        [/[^\\"]+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/"/, 'string', '@pop'],
+      ],
+      stringSingle: [
+        [/[^\\']+/, 'string'],
+        [/\\./, 'string.escape'],
+        [/'/, 'string', '@pop'],
       ],
     },
   });
 
   monaco.languages.setLanguageConfiguration('json5', {
+    comments: {
+      lineComment: '//',
+      blockComment: ['/*', '*/'],
+    },
     brackets: [
       ['{', '}'],
       ['[', ']'],
     ],
     autoClosingPairs: [
+      { open: '{', close: '}' },
+      { open: '[', close: ']' },
+      { open: '"', close: '"' },
+      { open: "'", close: "'" },
+    ],
+    surroundingPairs: [
       { open: '{', close: '}' },
       { open: '[', close: ']' },
       { open: '"', close: '"' },

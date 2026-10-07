@@ -74,8 +74,8 @@ function readFence(
   lines: string[],
   start: number,
 ): { block: string; next: number } {
-  const marker = lines[start].match(/^\s*```(\w+)?\s*$/);
-  const lang = marker?.[1];
+  const marker = lines[start].match(/^\s*```\s*([^\s`]+)?\s*$/);
+  const lang = marker?.[1]?.toLowerCase();
   const body: string[] = [];
   let index = start + 1;
 

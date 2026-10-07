@@ -23,7 +23,7 @@ import type {
 } from './sql.ast';
 import { CLAUSE_STARTERS } from './sql.keywords';
 import type { Token } from './sql.keywords';
-import { tokenizeSql } from './sql.tokenizer';
+import { tokenizeSql, tokenizeSqlRecovering } from './sql.tokenizer';
 
 const INTERVAL_UNITS = new Set([
   'YEAR',
@@ -55,6 +55,25 @@ export function parseSql(input: string): SqlStatement[] {
   parser.expectEof();
 
   return statements;
+}
+
+/**
+ * Разбирает сколько получится полных SQL-выражений и возвращает неразобранный хвост
+ *
+ * @param input Исходный SQL-текст
+ */
+export function parseSqlRecovering(input: string): {
+  statements: SqlStatement[];
+  rest: string;
+} {
+  const { tokens } = tokenizeSqlRecovering(input);
+  const parser = new SqlParser(tokens);
+  const { statements, restFrom } = parser.parseScriptRecovering();
+
+  return {
+    statements,
+    rest: input.slice(restFrom),
+  };
 }
 
 /**
@@ -105,9 +124,34 @@ class SqlParser {
     return statements;
   }
 
+  parseScriptRecovering(): { statements: SqlStatement[]; restFrom: number } {
+    const statements: SqlStatement[] = [];
+
+    while (!this.at('eof')) {
+      this.skipSemicolon();
+
+      if (this.at('eof')) {
+        break;
+      }
+
+      const startPos = this.peek().pos;
+
+      try {
+        statements.push(this.parseStatement());
+        this.skipSemicolon();
+      } catch {
+        return { statements, restFrom: startPos };
+      }
+    }
+
+    return { statements, restFrom: this.peek().pos };
+  }
+
   parseSelect(): SelectStatement {
     const selectKw = this.expectKeyword('SELECT');
     const distinctKw = this.matchKeyword('DISTINCT');
+    const topKw = this.matchKeyword('TOP');
+    const top = topKw ? this.parsePrimary() : undefined;
     const columns = this.parseSelectList();
 
     let fromKw: string | undefined;
@@ -123,6 +167,8 @@ class SqlParser {
       }
     }
 
+    let prewhereKw: string | undefined;
+    let prewhere: SqlExpr | undefined;
     let whereKw: string | undefined;
     let where: SqlExpr | undefined;
     let groupByKw: [string, string] | undefined;
@@ -133,11 +179,19 @@ class SqlParser {
     const orderBy: OrderItem[] = [];
     let limitKw: string | undefined;
     let limit: SqlExpr | undefined;
+    let limitComma = false;
     let offsetKw: string | undefined;
     let offset: SqlExpr | undefined;
     let parsingClauses = true;
 
     while (parsingClauses) {
+      if (!prewhere && this.atKeyword('PREWHERE')) {
+        prewhereKw = this.expectKeyword('PREWHERE');
+        prewhere = this.parseExpr();
+
+        continue;
+      }
+
       if (!where && this.atKeyword('WHERE')) {
         whereKw = this.expectKeyword('WHERE');
         where = this.parseExpr();
@@ -176,6 +230,12 @@ class SqlParser {
         limitKw = this.expectKeyword('LIMIT');
         limit = this.parseExpr();
 
+        if (this.matchPunct(',')) {
+          limitComma = true;
+          offsetKw = undefined;
+          offset = this.parseExpr();
+        }
+
         continue;
       }
 
@@ -193,10 +253,14 @@ class SqlParser {
       type: 'select',
       selectKw,
       distinctKw,
+      topKw,
+      top,
       columns,
       fromKw,
       from,
       joins,
+      prewhereKw,
+      prewhere,
       whereKw,
       where,
       groupByKw,
@@ -207,6 +271,7 @@ class SqlParser {
       orderBy,
       limitKw,
       limit,
+      limitComma,
       offsetKw,
       offset,
     };
@@ -692,19 +757,40 @@ class SqlParser {
       this.matchKeyword('RIGHT') ||
       this.matchKeyword('FULL') ||
       this.matchKeyword('CROSS') ||
-      this.matchKeyword('OUTER')
+      this.matchKeyword('OUTER') ||
+      this.matchKeyword('GLOBAL') ||
+      this.matchKeyword('ASOF') ||
+      this.matchKeyword('ARRAY') ||
+      this.matchKeyword('SEMI') ||
+      this.matchKeyword('ANTI') ||
+      this.matchKeyword('ANY') ||
+      this.matchKeyword('STRAIGHT_JOIN') ||
+      this.matchKeyword('LATERAL')
     ) {
       kindParts.push(this.prev().raw);
     }
 
-    kindParts.push(this.expectKeyword('JOIN'));
+    if (this.atKeyword('APPLY')) {
+      kindParts.push(this.expectKeyword('APPLY'));
+    } else {
+      kindParts.push(this.expectKeyword('JOIN'));
+    }
 
     const table = this.parseTable();
     const onKw = this.matchKeyword('ON');
     const on = onKw ? this.parseExpr() : undefined;
+    const usingKw = this.matchKeyword('USING');
+    let using: string[] | undefined;
 
-    if (this.matchKeyword('USING')) {
-      throw new Error('USING joins are not supported yet');
+    if (usingKw) {
+      this.expectPunct('(');
+      using = [this.expectIdentOrQuoted()];
+
+      while (this.matchPunct(',')) {
+        using.push(this.expectIdentOrQuoted());
+      }
+
+      this.expectPunct(')');
     }
 
     return {
@@ -712,6 +798,8 @@ class SqlParser {
       table,
       onKw,
       on,
+      usingKw,
+      using,
     };
   }
 
@@ -820,7 +908,11 @@ class SqlParser {
       return this.parseBetween(left, this.expectKeyword('BETWEEN'));
     }
 
-    if (this.matchKeyword('LIKE') || this.matchKeyword('ILIKE')) {
+    if (
+      this.matchKeyword('LIKE') ||
+      this.matchKeyword('ILIKE') ||
+      this.matchKeyword('GLOB')
+    ) {
       return {
         type: 'binary',
         op: this.prev().raw,
@@ -837,7 +929,8 @@ class SqlParser {
       this.matchOp('<') ||
       this.matchOp('>') ||
       this.matchOp('<=') ||
-      this.matchOp('>=')
+      this.matchOp('>=') ||
+      this.matchOp('<=>')
     ) {
       return {
         type: 'binary',
@@ -949,6 +1042,10 @@ class SqlParser {
 
     if (this.at('string')) {
       return { type: 'string', value: this.eat().raw };
+    }
+
+    if (this.at('placeholder')) {
+      return { type: 'placeholder', value: this.eat().raw };
     }
 
     if (this.atIdentLike() || this.atKeyword('CAST')) {
@@ -1113,11 +1210,20 @@ class SqlParser {
   private isJoinStart(): boolean {
     return (
       this.atKeyword('JOIN') ||
+      this.atKeyword('APPLY') ||
       this.atKeyword('INNER') ||
       this.atKeyword('LEFT') ||
       this.atKeyword('RIGHT') ||
       this.atKeyword('FULL') ||
-      this.atKeyword('CROSS')
+      this.atKeyword('CROSS') ||
+      this.atKeyword('GLOBAL') ||
+      this.atKeyword('ASOF') ||
+      this.atKeyword('ARRAY') ||
+      this.atKeyword('SEMI') ||
+      this.atKeyword('ANTI') ||
+      this.atKeyword('ANY') ||
+      this.atKeyword('STRAIGHT_JOIN') ||
+      this.atKeyword('LATERAL')
     );
   }
 

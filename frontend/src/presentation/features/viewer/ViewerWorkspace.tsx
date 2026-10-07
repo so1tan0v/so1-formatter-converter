@@ -2,22 +2,23 @@
  * Imports from packages
  */
 import { Form, Formik, type FormikProps } from 'formik';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 /**
  * Imports from app
  */
-import { converterRegistry, historyStore } from '@app/composition';
+import { historyStore, viewerRegistry } from '@app/composition';
 
 /**
  * Imports from application
  */
-import { convertText } from '@application/convert-text';
+import { viewText } from '@application/view-text';
 
 /**
  * Imports from domain
  */
-import type { ConverterId } from '@domain/converter/types';
+import type { ViewerId } from '@domain/viewer/types';
 
 /**
  * Imports from presentation
@@ -25,8 +26,7 @@ import type { ConverterId } from '@domain/converter/types';
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
-import { languageForFormat } from '@presentation/editors/languages';
-import { CONVERT_SAMPLES } from '@presentation/fixtures/samples';
+import { VIEW_SAMPLES } from '@presentation/fixtures/samples';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
 import {
@@ -35,40 +35,53 @@ import {
   setOutput,
   setSource,
 } from '@presentation/store/workspace.slice';
-import {
-  dispatchTuiCommand,
-  TUI_COMMAND_EVENT,
-  type TuiCommand,
-} from '@presentation/tui/commands';
+import { TUI_COMMAND_EVENT, type TuiCommand } from '@presentation/tui/commands';
 
-interface ConverterWorkspaceProps {
-  converterId: ConverterId;
+interface ViewerWorkspaceProps {
+  viewerId: ViewerId;
 }
 
-interface ConverterFormValues {
+interface ViewerFormValues {
   source: string;
 }
 
 /**
- * Рабочая область конвертера: ввод, преобразование, вывод и история
+ * Рабочая область просмотрщика: исходный текст и предпросмотр
  *
- * @param converterId Идентификатор активного конвертера
+ * @param viewerId Идентификатор активного просмотрщика
  */
-export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
+export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const dispatch = useAppDispatch();
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
-  const formikRef = useRef<FormikProps<ConverterFormValues>>(null);
-  const converter = converterRegistry.get(converterId);
-  const sample = CONVERT_SAMPLES[converterId] ?? '';
-  const historyScope = `converter:${converterId}` as const;
+  const formikRef = useRef<FormikProps<ViewerFormValues>>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [overlayHost, setOverlayHost] = useState<Element | null>(null);
+  const viewer = viewerRegistry.get(viewerId);
+  const sample = VIEW_SAMPLES[viewerId] ?? '';
+  const historyScope = `viewer:${viewerId}` as const;
   const { entries, remember } = useInputHistory(historyScope);
 
-  const initialValues = useMemo<ConverterFormValues>(() => {
+  const initialValues = useMemo<ViewerFormValues>(() => {
     const stored = historyStore.latest(historyScope);
 
     return { source: stored?.source ?? sample };
   }, [historyScope, sample]);
+
+  const publishPreview = useCallback(
+    (source: string) => {
+      const result = viewText(viewerRegistry, viewerId, source);
+
+      if (result.ok) {
+        dispatch(setOutput(result.value));
+
+        return;
+      }
+
+      dispatch(setError(result.error));
+    },
+    [dispatch, viewerId],
+  );
 
   useEffect(() => {
     const stored = historyStore.latest(historyScope);
@@ -77,13 +90,21 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
     dispatch(setSource(stored?.source ?? sample));
 
     if (stored?.output) {
-      dispatch(setOutput(stored.output));
+      publishPreview(stored.source);
     }
-  }, [dispatch, historyScope, sample]);
+  }, [dispatch, historyScope, publishPreview, sample]);
+
+  useEffect(() => {
+    setOverlayHost(document.querySelector('.term-screen'));
+  }, []);
 
   useEffect(() => {
     const run = async (command: TuiCommand) => {
-      if (command === 'convert' || command === 'format') {
+      if (
+        command === 'render' ||
+        command === 'format' ||
+        command === 'convert'
+      ) {
         await formikRef.current?.submitForm();
 
         return;
@@ -92,12 +113,6 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
       if (command === 'sample') {
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
-
-        return;
-      }
-
-      if (command === 'copy' && output) {
-        await navigator.clipboard.writeText(output);
       }
     };
 
@@ -106,9 +121,12 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'F2') {
+      if (
+        event.key === 'F2' ||
+        ((event.ctrlKey || event.metaKey) && event.key === 'Enter')
+      ) {
         event.preventDefault();
-        void run('convert');
+        void run('render');
       }
 
       if (event.key === 'F3') {
@@ -116,9 +134,9 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
         void run('sample');
       }
 
-      if (event.key === 'F4') {
+      if (event.key === 'Escape' && fullscreen) {
         event.preventDefault();
-        void run('copy');
+        setFullscreen(false);
       }
     };
 
@@ -129,16 +147,11 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
       document.removeEventListener(TUI_COMMAND_EVENT, onCommand);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [dispatch, output, sample]);
+  }, [dispatch, sample, fullscreen]);
 
-  if (!converter) {
-    return <p className="term-error">Unknown converter.</p>;
+  if (!viewer) {
+    return <p className="term-error">Unknown viewer.</p>;
   }
-
-  const inputLanguage = languageForFormat(converter.sourceFormat, 'input');
-  const outputLanguage = error
-    ? 'plaintext'
-    : languageForFormat(converter.targetFormat, 'output');
 
   return (
     <Formik
@@ -148,12 +161,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
       onSubmit={(values) => {
         dispatch(setSource(values.source));
 
-        const result = convertText(
-          converterRegistry,
-          converterId,
-          values.source,
-          {},
-        );
+        const result = viewText(viewerRegistry, viewerId, values.source);
 
         if (result.ok) {
           dispatch(setOutput(result.value));
@@ -170,7 +178,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
           <div className="formatter-workspace__panes">
             <AsciiFrame
               title="Input"
-              hint={converter.sourceLabel}
+              hint={viewer.sourceLabel}
               fill
               actions={
                 <HistorySelect
@@ -181,7 +189,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                     dispatch(setSource(entry.source));
 
                     if (entry.output) {
-                      dispatch(setOutput(entry.output));
+                      publishPreview(entry.source);
                     } else {
                       dispatch(clearResult());
                     }
@@ -191,8 +199,8 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
             >
               <CodeEditor
                 value={values.source}
-                language={inputLanguage}
-                ariaLabel={`${converter.sourceLabel} input`}
+                language="markdown"
+                ariaLabel={`${viewer.label} input`}
                 onChange={(next) => {
                   void setFieldValue('source', next);
                   dispatch(setSource(next));
@@ -205,7 +213,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                 type="submit"
                 className="tui-inline-cmd tui-inline-cmd--block"
               >
-                &quot;Convert&quot;
+                &quot;Render&quot;
               </button>
               <span
                 className="formatter-workspace__gutter-arrow"
@@ -216,35 +224,65 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
             </div>
 
             <AsciiFrame
-              title={error ? 'Error' : 'Output'}
-              hint={error ? undefined : converter.targetLabel}
+              title={error ? 'Error' : 'Preview'}
+              hint={error ? undefined : viewer.label}
               fill
               actions={
                 <button
                   type="button"
                   className="tui-inline-cmd"
                   disabled={!output || Boolean(error)}
-                  onClick={() => dispatchTuiCommand('copy')}
+                  onClick={() => setFullscreen(true)}
                 >
-                  &quot;Copy&quot;
+                  &quot;Fullscreen&quot;
                 </button>
               }
             >
               <div className="formatter-workspace__output">
-                <CodeEditor
-                  value={error ?? output}
-                  language={outputLanguage}
-                  ariaLabel={`${converter.targetLabel} output`}
-                  readOnly
-                />
-                {!output && !error ? (
-                  <p className="formatter-workspace__empty">
-                    Converted text will appear here after you press Convert.
+                {error ? (
+                  <p className="term-error" role="alert">
+                    {error}
                   </p>
-                ) : null}
+                ) : output ? (
+                  <div
+                    className="markdown-preview"
+                    dangerouslySetInnerHTML={{ __html: output }}
+                  />
+                ) : (
+                  <p className="formatter-workspace__empty">
+                    Preview will appear here after you press Render.
+                  </p>
+                )}
               </div>
             </AsciiFrame>
           </div>
+          {fullscreen && output && overlayHost
+            ? createPortal(
+                <div
+                  className="markdown-preview-fullscreen"
+                  role="dialog"
+                  aria-label="Markdown preview"
+                >
+                  <header className="markdown-preview-fullscreen__bar">
+                    <span className="markdown-preview-fullscreen__title">
+                      Preview — {viewer.label}
+                    </span>
+                    <button
+                      type="button"
+                      className="tui-inline-cmd"
+                      onClick={() => setFullscreen(false)}
+                    >
+                      &quot;Exit&quot;
+                    </button>
+                  </header>
+                  <div
+                    className="markdown-preview markdown-preview--expanded"
+                    dangerouslySetInnerHTML={{ __html: output }}
+                  />
+                </div>,
+                overlayHost,
+              )
+            : null}
         </Form>
       )}
     </Formik>

@@ -24,7 +24,11 @@ export function useInputHistory(scope: HistoryScope): {
   remember: (source: string, output: string) => void;
 } {
   const [revision, setRevision] = useState(0);
-  const entries = useMemo(() => historyStore.list(scope), [scope, revision]);
+  const entries = useMemo(() => {
+    void revision;
+
+    return historyStore.list(scope);
+  }, [scope, revision]);
   const latest = entries[0];
 
   const remember = useCallback(

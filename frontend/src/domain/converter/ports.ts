@@ -6,7 +6,7 @@ import type { Result } from '@domain/shared/result';
 /**
  * Imports from relative
  */
-import type { ConverterId, ConverterOptions } from './types';
+import type { ConverterFormat, ConverterId, ConverterOptions } from './types';
 
 export interface TextConverter {
   /**
@@ -23,6 +23,26 @@ export interface TextConverter {
    * Признак, что конвертер уже доступен пользователю
    */
   readonly available: boolean;
+
+  /**
+   * Формат исходного текста
+   */
+  readonly sourceFormat: ConverterFormat;
+
+  /**
+   * Формат результата
+   */
+  readonly targetFormat: ConverterFormat;
+
+  /**
+   * Подпись поля ввода
+   */
+  readonly sourceLabel: string;
+
+  /**
+   * Подпись поля вывода
+   */
+  readonly targetLabel: string;
 
   /**
    * Преобразует исходный текст в целевой формат

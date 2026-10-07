@@ -3,13 +3,15 @@
  */
 import type { TextFormatter } from '@domain/formatter/ports';
 import type { YamlFormatOptions } from '@domain/formatter/types';
-import { failure, success, toErrorMessage } from '@domain/shared/result';
+import { indentString } from '@domain/shared/indent';
+import { failure, success } from '@domain/shared/result';
 import type { Result } from '@domain/shared/result';
 
 /**
  * Imports from relative
  */
 import { parseLooseYaml } from './yaml.parser';
+import { prettyPrintYamlFragment } from './yaml.pretty-print';
 import { serializeYaml } from './yaml.serialize';
 
 export class YamlFormatter implements TextFormatter<'yaml'> {
@@ -38,11 +40,20 @@ export class YamlFormatter implements TextFormatter<'yaml'> {
 
     try {
       const value = parseLooseYaml(source);
-      const output = serializeYaml(value, options);
+
+      return success(serializeYaml(value, options));
+    } catch {
+      let output = prettyPrintYamlFragment(
+        source,
+        indentString(options.indent),
+        options.mode === 'compact',
+      );
+
+      if (options.mode === 'escaped') {
+        output = JSON.stringify(output);
+      }
 
       return success(output);
-    } catch (error) {
-      return failure(toErrorMessage(error));
     }
   }
 }

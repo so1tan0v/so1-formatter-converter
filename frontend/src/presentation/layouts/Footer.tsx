@@ -17,36 +17,43 @@ export function Footer() {
   const { isEmbed } = useEmbed();
   const converterActive = location.pathname.startsWith('/converter');
   const viewerActive = location.pathname.startsWith('/viewer');
-  const action = converterActive ? 'convert' : 'format';
-  const actionLabel = converterActive ? 'Convert' : 'Format';
+  const action = viewerActive
+    ? 'render'
+    : converterActive
+      ? 'convert'
+      : 'format';
+  const actionLabel = viewerActive
+    ? 'Render'
+    : converterActive
+      ? 'Convert'
+      : 'Format';
+  const actionVerb = viewerActive
+    ? 'preview'
+    : converterActive
+      ? 'transform'
+      : 'prettify';
 
   return (
     <footer className="tui-footer">
       <p className="tui-help" id="tui-help">
-        {viewerActive ? (
-          'Markdown viewer is coming soon.'
-        ) : (
-          <>
-            Click{' '}
-            <button
-              type="button"
-              className="tui-inline-cmd"
-              onClick={() => dispatchTuiCommand(action)}
-            >
-              &quot;{actionLabel}&quot;
-            </button>{' '}
-            to {converterActive ? 'transform' : 'prettify'}. Click{' '}
-            <button
-              type="button"
-              className="tui-inline-cmd"
-              onClick={() => dispatchTuiCommand('sample')}
-            >
-              &quot;Example&quot;
-            </button>{' '}
-            for a sample.
-            {isEmbed ? ' Copy with F4. Exit with Ctrl+C or ⌘C.' : null}
-          </>
-        )}
+        Click{' '}
+        <button
+          type="button"
+          className="tui-inline-cmd"
+          onClick={() => dispatchTuiCommand(action)}
+        >
+          &quot;{actionLabel}&quot;
+        </button>{' '}
+        to {actionVerb}. Click{' '}
+        <button
+          type="button"
+          className="tui-inline-cmd"
+          onClick={() => dispatchTuiCommand('sample')}
+        >
+          &quot;Example&quot;
+        </button>{' '}
+        for a sample.
+        {isEmbed ? ' Copy with F4. Exit with Ctrl+C or ⌘C.' : null}
       </p>
       <div className="tui-statusbar">
         {isEmbed ? (

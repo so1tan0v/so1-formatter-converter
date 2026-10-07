@@ -72,6 +72,30 @@ describe('JsonFormatter', () => {
     expect(result.ok).toBe(false);
   });
 
+  it('pretty prints up to an unclosed string', () => {
+    const result = formatter.format(
+      '{"some": 1, "some2": {"key": "value", "key2": "valu',
+      {
+        ...DEFAULT_JSON_OPTIONS,
+        indent: '4-space',
+      },
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.value).toBe(
+        [
+          '{',
+          '    "some": 1,',
+          '    "some2": {',
+          '        "key": "value",',
+          '        "key2": "valu',
+        ].join('\n'),
+      );
+    }
+  });
+
   it('sorts object keys when requested', () => {
     const result = formatter.format('{zeta: 1, alpha: 2}', {
       ...DEFAULT_JSON_OPTIONS,

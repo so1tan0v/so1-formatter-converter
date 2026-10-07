@@ -112,12 +112,24 @@ export function Header() {
         ) : null}
         {viewerActive ? (
           <div className="tui-menu__row">
-            {viewerRegistry.list().map((viewer) => (
-              <span key={viewer.id} className="tui-type is-disabled">
-                {viewer.label}
-                <span className="tui-soon">soon</span>
-              </span>
-            ))}
+            {viewerRegistry.list().map((viewer) =>
+              viewer.available ? (
+                <NavLink
+                  key={viewer.id}
+                  to={{ pathname: `/viewer/${viewer.id}`, search }}
+                  className={({ isActive }) =>
+                    `tui-type ${isActive ? 'is-active' : ''}`.trim()
+                  }
+                >
+                  {viewer.label}
+                </NavLink>
+              ) : (
+                <span key={viewer.id} className="tui-type is-disabled">
+                  {viewer.label}
+                  <span className="tui-soon">soon</span>
+                </span>
+              ),
+            )}
           </div>
         ) : null}
       </nav>

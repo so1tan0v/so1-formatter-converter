@@ -33,15 +33,30 @@ export function serializeJson(
       break;
   }
 
+  return applyJsonTextOptions(output, options);
+}
+
+/**
+ * Применяет unicode-escape и завершающий перевод строки к уже собранному JSON
+ *
+ * @param output Собранный JSON-текст
+ * @param options Настройки форматирования JSON
+ */
+export function applyJsonTextOptions(
+  output: string,
+  options: JsonFormatOptions,
+): string {
+  let next = output;
+
   if (options.escapeUnicode) {
-    output = escapeNonAscii(output);
+    next = escapeNonAscii(next);
   }
 
-  if (options.trailingNewline && !output.endsWith('\n')) {
-    output += '\n';
+  if (options.trailingNewline && !next.endsWith('\n')) {
+    next += '\n';
   }
 
-  return output;
+  return next;
 }
 
 function prepareJson(value: unknown, options: JsonFormatOptions): unknown {

@@ -66,6 +66,34 @@ export const SQL_KEYWORDS = new Set([
   'INTERVAL',
   'TRUE',
   'FALSE',
+  'TOP',
+  'PREWHERE',
+  'SETTINGS',
+  'FORMAT',
+  'FINAL',
+  'SAMPLE',
+  'APPLY',
+  'LATERAL',
+  'GLOBAL',
+  'ASOF',
+  'ARRAY',
+  'SEMI',
+  'ANTI',
+  'ANY',
+  'STRAIGHT_JOIN',
+  'FETCH',
+  'NEXT',
+  'ROWS',
+  'ONLY',
+  'RETURNING',
+  'GLOB',
+  'REPLACE',
+  'IGNORE',
+  'PARTITION',
+  'OVER',
+  'WINDOW',
+  'FILTER',
+  'NOLOCK',
 ]);
 
 /**
@@ -100,6 +128,11 @@ export const CLAUSE_STARTERS = new Set([
   'CALL',
   'RETURN',
   'CREATE',
+  'PREWHERE',
+  'APPLY',
+  'RETURNING',
+  'SETTINGS',
+  'FORMAT',
 ]);
 
 /**
@@ -130,7 +163,14 @@ export const SQL_FUNCTIONS = new Set([
 ]);
 
 export type TokenType =
-  'ident' | 'number' | 'string' | 'punct' | 'op' | 'keyword' | 'eof';
+  | 'ident'
+  | 'number'
+  | 'string'
+  | 'punct'
+  | 'op'
+  | 'keyword'
+  | 'placeholder'
+  | 'eof';
 
 export interface Token {
   type: TokenType;

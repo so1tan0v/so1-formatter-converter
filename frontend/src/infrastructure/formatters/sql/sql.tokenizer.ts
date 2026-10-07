@@ -3,9 +3,38 @@
  */
 import { isKeywordName, type Token } from './sql.keywords';
 
-const TWO_CHAR_OPS = ['==', '!=', '<>', '<=', '>=', '||', '&&', '::'];
-const ONE_CHAR_OPS = new Set(['=', '<', '>', '+', '-', '*', '/', '%', '!']);
+const THREE_CHAR_OPS = ['<=>'];
+const TWO_CHAR_OPS = [
+  '==',
+  '!=',
+  '<>',
+  '<=',
+  '>=',
+  '||',
+  '&&',
+  '::',
+  ':=',
+  '!~',
+  '>>',
+  '<<',
+];
+const ONE_CHAR_OPS = new Set([
+  '=',
+  '<',
+  '>',
+  '+',
+  '-',
+  '*',
+  '/',
+  '%',
+  '!',
+  '~',
+  '^',
+  '&',
+  '|',
+]);
 const PUNCT = new Set(['(', ')', ',', ';', '.']);
+const FORMAT_SPEC = /[sdifurxXoegGcb%]/;
 
 /**
  * Разбивает SQL-текст на токены
@@ -13,6 +42,26 @@ const PUNCT = new Set(['(', ')', ',', ';', '.']);
  * @param input Исходный SQL-текст
  */
 export function tokenizeSql(input: string): Token[] {
+  const { tokens, rest } = tokenizeSqlRecovering(input);
+
+  if (rest) {
+    throw new Error(
+      `Unexpected character "${rest[0]}" at position ${input.length - rest.length}`,
+    );
+  }
+
+  return tokens;
+}
+
+/**
+ * Токенизирует SQL, не падая на неизвестных символах: хвост возвращается как rest
+ *
+ * @param input Исходный SQL-текст
+ */
+export function tokenizeSqlRecovering(input: string): {
+  tokens: Token[];
+  rest: string;
+} {
   const tokens: Token[] = [];
   let i = 0;
 
@@ -37,11 +86,101 @@ export function tokenizeSql(input: string): Token[] {
       continue;
     }
 
-    if (char === "'" || char === '"' || char === '`') {
-      const token = readQuoted(input, i, char);
+    if (char === '#' && !isIdentStart(input[i + 1] ?? '') && input[i + 1] !== '#') {
+      i = skipLine(input, i);
 
-      tokens.push(token);
-      i = token.pos + token.raw.length;
+      continue;
+    }
+
+    const placeholder = readPlaceholder(input, i);
+
+    if (placeholder) {
+      tokens.push(placeholder);
+      i = placeholder.pos + placeholder.raw.length;
+
+      continue;
+    }
+
+    if ((char === 'N' || char === 'n') && isQuote(input[i + 1] ?? '')) {
+      const quoted = readQuoted(input, i + 1, input[i + 1]);
+
+      if (!quoted) {
+        return finish(tokens, input, i);
+      }
+
+      const raw = char + quoted.raw;
+
+      tokens.push({ type: 'string', value: raw, raw, pos: i });
+      i += raw.length;
+
+      continue;
+    }
+
+    if (isQuote(char)) {
+      const quoted = readQuoted(input, i, char);
+
+      if (!quoted) {
+        tokens.push({
+          type: 'string',
+          value: input.slice(i),
+          raw: input.slice(i),
+          pos: i,
+        });
+
+        return finish(tokens, input, input.length);
+      }
+
+      tokens.push(quoted);
+      i = quoted.pos + quoted.raw.length;
+
+      continue;
+    }
+
+    if (char === '[') {
+      const ident = readWrappedIdent(input, i, ']');
+
+      if (!ident) {
+        tokens.push({
+          type: 'ident',
+          value: input.slice(i),
+          raw: input.slice(i),
+          pos: i,
+        });
+
+        return finish(tokens, input, input.length);
+      }
+
+      tokens.push(ident);
+      i = ident.pos + ident.raw.length;
+
+      continue;
+    }
+
+    if (char === '{') {
+      const ident = readWrappedIdent(input, i, '}');
+
+      if (!ident) {
+        tokens.push({
+          type: 'ident',
+          value: input.slice(i),
+          raw: input.slice(i),
+          pos: i,
+        });
+
+        return finish(tokens, input, input.length);
+      }
+
+      tokens.push(ident);
+      i = ident.pos + ident.raw.length;
+
+      continue;
+    }
+
+    if (char === '@' || char === '#') {
+      const ident = readSigilIdent(input, i, char);
+
+      tokens.push(ident);
+      i = ident.pos + ident.raw.length;
 
       continue;
     }
@@ -51,6 +190,15 @@ export function tokenizeSql(input: string): Token[] {
 
       tokens.push(token);
       i = token.pos + token.raw.length;
+
+      continue;
+    }
+
+    const three = input.slice(i, i + 3);
+
+    if (THREE_CHAR_OPS.includes(three)) {
+      tokens.push({ type: 'op', value: three, raw: three, pos: i });
+      i += 3;
 
       continue;
     }
@@ -88,16 +236,20 @@ export function tokenizeSql(input: string): Token[] {
 
         const raw = input.slice(i, j);
 
-        tokens.push({ type: 'ident', value: raw, raw, pos: i });
+        tokens.push({ type: 'placeholder', value: raw, raw, pos: i });
         i = j;
 
         continue;
       }
 
-      const token = readDollarQuote(input, i);
+      const dollar = readDollarQuote(input, i);
 
-      tokens.push(token);
-      i = token.pos + token.raw.length;
+      if (!dollar) {
+        return finish(tokens, input, i);
+      }
+
+      tokens.push(dollar);
+      i = dollar.pos + dollar.raw.length;
 
       continue;
     }
@@ -111,15 +263,74 @@ export function tokenizeSql(input: string): Token[] {
       continue;
     }
 
-    throw new Error(`Unexpected character "${char}" at position ${i}`);
+    return finish(tokens, input, i);
   }
 
-  tokens.push({ type: 'eof', value: '', raw: '', pos: input.length });
-
-  return tokens;
+  return finish(tokens, input, input.length);
 }
 
-function readDollarQuote(input: string, start: number): Token {
+function finish(
+  tokens: Token[],
+  input: string,
+  index: number,
+): { tokens: Token[]; rest: string } {
+  tokens.push({ type: 'eof', value: '', raw: '', pos: index });
+
+  return { tokens, rest: input.slice(index) };
+}
+
+function readPlaceholder(input: string, start: number): Token | undefined {
+  const char = input[start];
+
+  if (char === '?') {
+    let index = start + 1;
+
+    while (isDigit(input[index] ?? '')) {
+      index += 1;
+    }
+
+    const raw = input.slice(start, index);
+
+    return { type: 'placeholder', value: raw, raw, pos: start };
+  }
+
+  if (char === '%') {
+    if (input[start + 1] === '(') {
+      const close = input.indexOf(')', start + 2);
+      const spec = close === -1 ? '' : input[close + 1] ?? '';
+
+      if (close !== -1 && FORMAT_SPEC.test(spec)) {
+        const raw = input.slice(start, close + 2);
+
+        return { type: 'placeholder', value: raw, raw, pos: start };
+      }
+    }
+
+    const spec = input[start + 1] ?? '';
+
+    if (FORMAT_SPEC.test(spec) && !isIdentPart(input[start + 2] ?? '')) {
+      const raw = input.slice(start, start + 2);
+
+      return { type: 'placeholder', value: raw, raw, pos: start };
+    }
+  }
+
+  if (char === ':' && input[start + 1] !== ':' && isIdentStart(input[start + 1] ?? '')) {
+    let index = start + 1;
+
+    while (isIdentPart(input[index] ?? '')) {
+      index += 1;
+    }
+
+    const raw = input.slice(start, index);
+
+    return { type: 'placeholder', value: raw, raw, pos: start };
+  }
+
+  return undefined;
+}
+
+function readDollarQuote(input: string, start: number): Token | undefined {
   let i = start + 1;
 
   while (i < input.length && isIdentPart(input[i])) {
@@ -127,16 +338,19 @@ function readDollarQuote(input: string, start: number): Token {
   }
 
   if (input[i] !== '$') {
-    throw new Error(`Unexpected character "$" at position ${start}`);
+    return undefined;
   }
 
   const tag = input.slice(start, i + 1);
   const closeAt = input.indexOf(tag, i + 1);
 
   if (closeAt === -1) {
-    throw new Error(
-      `Unterminated dollar-quoted string starting at position ${start}`,
-    );
+    return {
+      type: 'string',
+      value: input.slice(start),
+      raw: input.slice(start),
+      pos: start,
+    };
   }
 
   const raw = input.slice(start, closeAt + tag.length);
@@ -144,7 +358,11 @@ function readDollarQuote(input: string, start: number): Token {
   return { type: 'string', value: raw, raw, pos: start };
 }
 
-function readQuoted(input: string, start: number, quote: string): Token {
+function readQuoted(
+  input: string,
+  start: number,
+  quote: string,
+): Token | undefined {
   let i = start + 1;
   let raw = quote;
 
@@ -173,7 +391,39 @@ function readQuoted(input: string, start: number, quote: string): Token {
     }
   }
 
-  throw new Error(`Unterminated string starting at position ${start}`);
+  return undefined;
+}
+
+function readWrappedIdent(
+  input: string,
+  start: number,
+  close: string,
+): Token | undefined {
+  const end = input.indexOf(close, start + 1);
+
+  if (end === -1) {
+    return undefined;
+  }
+
+  const raw = input.slice(start, end + 1);
+
+  return { type: 'ident', value: raw, raw, pos: start };
+}
+
+function readSigilIdent(input: string, start: number, sigil: string): Token {
+  let index = start + 1;
+
+  if (input[index] === sigil) {
+    index += 1;
+  }
+
+  while (isIdentPart(input[index] ?? '')) {
+    index += 1;
+  }
+
+  const raw = input.slice(start, index);
+
+  return { type: 'ident', value: raw, raw, pos: start };
 }
 
 function readNumber(input: string, start: number): Token {
@@ -223,6 +473,10 @@ function skipBlockComment(input: string, start: number): number {
   }
 
   return Math.min(i + 2, input.length);
+}
+
+function isQuote(char: string): boolean {
+  return char === "'" || char === '"' || char === '`';
 }
 
 function isWhitespace(char: string): boolean {

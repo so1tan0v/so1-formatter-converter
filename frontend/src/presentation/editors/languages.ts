@@ -1,10 +1,11 @@
 /**
  * Imports from domain
  */
+import type { ConverterFormat } from '@domain/converter/types';
 import type { FormatterId } from '@domain/formatter/types';
 
 export type EditorLanguage =
-  'json' | 'json5' | 'yaml' | 'sql' | 'markdown' | 'plaintext';
+  'json' | 'json5' | 'yaml' | 'sql' | 'markdown' | 'html' | 'plaintext';
 
 /**
  * Возвращает язык подсветки для поля ввода форматтера
@@ -43,5 +44,32 @@ export function outputLanguageFor(
       return 'yaml';
     case 'sql':
       return 'sql';
+  }
+}
+
+/**
+ * Возвращает язык подсветки редактора для формата конвертера
+ *
+ * @param format Формат исходного или результирующего текста
+ * @param role Роль поля: ввод допускает ослабленный JSON
+ */
+export function languageForFormat(
+  format: ConverterFormat,
+  role: 'input' | 'output',
+): EditorLanguage {
+  switch (format) {
+    case 'json':
+      return role === 'input' ? 'json5' : 'json';
+    case 'yaml':
+      return 'yaml';
+    case 'sql':
+      return 'sql';
+    case 'markdown':
+      return 'markdown';
+    case 'html':
+      return 'html';
+    case 'jira':
+    case 'plaintext':
+      return 'plaintext';
   }
 }

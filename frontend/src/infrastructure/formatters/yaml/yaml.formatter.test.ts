@@ -55,6 +55,20 @@ describe('YamlFormatter', () => {
     }
   });
 
+  it('pretty prints an incomplete mapping instead of failing', () => {
+    const result = formatter.format(
+      '{"name": "tonus", "enabled": tru',
+      DEFAULT_YAML_OPTIONS,
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.value).toContain('"name": "tonus"');
+      expect(result.value).toContain('"enabled": tru');
+    }
+  });
+
   it('can sort keys and add a document start marker', () => {
     const result = formatter.format('b: 2\na: 1', {
       ...DEFAULT_YAML_OPTIONS,

@@ -3,14 +3,16 @@
  */
 import type { TextFormatter } from '@domain/formatter/ports';
 import type { JsonFormatOptions } from '@domain/formatter/types';
-import { failure, success, toErrorMessage } from '@domain/shared/result';
+import { indentString } from '@domain/shared/indent';
+import { failure, success } from '@domain/shared/result';
 import type { Result } from '@domain/shared/result';
 
 /**
  * Imports from relative
  */
 import { parseLooseJson } from './json.parser';
-import { serializeJson } from './json.serialize';
+import { prettyPrintJsonFragment } from './json.pretty-print';
+import { applyJsonTextOptions, serializeJson } from './json.serialize';
 
 export class JsonFormatter implements TextFormatter<'json'> {
   /**
@@ -38,11 +40,22 @@ export class JsonFormatter implements TextFormatter<'json'> {
 
     try {
       const value = parseLooseJson(source);
-      const output = serializeJson(value, options);
 
-      return success(output);
-    } catch (error) {
-      return failure(toErrorMessage(error));
+      return success(serializeJson(value, options));
+    } catch {
+      const indent = indentString(options.indent);
+
+      let output = prettyPrintJsonFragment(
+        source,
+        indent,
+        options.mode === 'compact',
+      );
+
+      if (options.mode === 'escaped') {
+        output = JSON.stringify(output);
+      }
+
+      return success(applyJsonTextOptions(output, options));
     }
   }
 }

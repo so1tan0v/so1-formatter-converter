@@ -9,18 +9,18 @@ import type { Result } from '@domain/shared/result';
  * Imports from relative
  */
 import { convertSource } from '../convert-source';
-import { markdownToJira } from './markdown-to-jira';
+import { markdownToHtml } from './markdown-to-html';
 
-export class MarkdownJiraConverter implements TextConverter {
+export class MarkdownHtmlConverter implements TextConverter {
   /**
-   * Идентификатор конвертера Markdown в Jira
+   * Идентификатор конвертера Markdown в HTML
    */
-  readonly id = 'markdown-jira' as const;
+  readonly id = 'markdown-html' as const;
 
   /**
    * Подпись конвертера в интерфейсе
    */
-  readonly label = 'Markdown → Jira';
+  readonly label = 'Markdown → HTML';
 
   /**
    * Признак, что конвертер уже доступен пользователю
@@ -35,7 +35,7 @@ export class MarkdownJiraConverter implements TextConverter {
   /**
    * Формат результата
    */
-  readonly targetFormat: ConverterFormat = 'jira';
+  readonly targetFormat: ConverterFormat = 'html';
 
   /**
    * Подпись поля ввода
@@ -45,14 +45,14 @@ export class MarkdownJiraConverter implements TextConverter {
   /**
    * Подпись поля вывода
    */
-  readonly targetLabel = 'Jira Markup';
+  readonly targetLabel = 'HTML';
 
   /**
-   * Преобразует Markdown в разметку Jira
+   * Преобразует Markdown в HTML
    *
    * @param input Исходный Markdown-текст
    */
   convert(input: string): Result<string> {
-    return convertSource(input, markdownToJira);
+    return convertSource(input, markdownToHtml);
   }
 }

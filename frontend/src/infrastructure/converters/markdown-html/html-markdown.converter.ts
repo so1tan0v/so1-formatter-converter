@@ -9,18 +9,18 @@ import type { Result } from '@domain/shared/result';
  * Imports from relative
  */
 import { convertSource } from '../convert-source';
-import { markdownToJira } from './markdown-to-jira';
+import { htmlToMarkdown } from './html-to-markdown';
 
-export class MarkdownJiraConverter implements TextConverter {
+export class HtmlMarkdownConverter implements TextConverter {
   /**
-   * Идентификатор конвертера Markdown в Jira
+   * Идентификатор конвертера HTML в Markdown
    */
-  readonly id = 'markdown-jira' as const;
+  readonly id = 'html-markdown' as const;
 
   /**
    * Подпись конвертера в интерфейсе
    */
-  readonly label = 'Markdown → Jira';
+  readonly label = 'HTML → Markdown';
 
   /**
    * Признак, что конвертер уже доступен пользователю
@@ -30,29 +30,29 @@ export class MarkdownJiraConverter implements TextConverter {
   /**
    * Формат исходного текста
    */
-  readonly sourceFormat: ConverterFormat = 'markdown';
+  readonly sourceFormat: ConverterFormat = 'html';
 
   /**
    * Формат результата
    */
-  readonly targetFormat: ConverterFormat = 'jira';
+  readonly targetFormat: ConverterFormat = 'markdown';
 
   /**
    * Подпись поля ввода
    */
-  readonly sourceLabel = 'Markdown';
+  readonly sourceLabel = 'HTML';
 
   /**
    * Подпись поля вывода
    */
-  readonly targetLabel = 'Jira Markup';
+  readonly targetLabel = 'Markdown';
 
   /**
-   * Преобразует Markdown в разметку Jira
+   * Преобразует HTML в Markdown
    *
-   * @param input Исходный Markdown-текст
+   * @param input Исходный HTML
    */
   convert(input: string): Result<string> {
-    return convertSource(input, markdownToJira);
+    return convertSource(input, htmlToMarkdown);
   }
 }

@@ -8,35 +8,65 @@ import type { ConverterRegistry } from '@application/convert-text';
  */
 import type { TextConverter } from '@domain/converter/ports';
 import type { ConverterId } from '@domain/converter/types';
-import { failure } from '@domain/shared/result';
 
 /**
  * Imports from relative
  */
+import { defineConverter } from './define-converter';
+import { jsonToYaml } from './json-yaml/json-to-yaml';
+import { yamlToJson } from './json-yaml/yaml-to-json';
+import { jsonToSql } from './json-sql/json-to-sql';
+import { sqlToJson } from './json-sql/sql-to-json';
+import { HtmlMarkdownConverter } from './markdown-html/html-markdown.converter';
+import { MarkdownHtmlConverter } from './markdown-html/markdown-html.converter';
+import { JiraMarkdownConverter } from './markdown-jira/jira-markdown.converter';
 import { MarkdownJiraConverter } from './markdown-jira/markdown-jira.converter';
 
-const PLACEHOLDERS: TextConverter[] = [
-  {
-    id: 'json-yaml',
-    label: 'JSON ↔ YAML',
-    available: false,
-    convert: () => failure('JSON ↔ YAML converter is not available yet'),
-  },
-  {
-    id: 'json-sql',
-    label: 'JSON ↔ SQL',
-    available: false,
-    convert: () => failure('JSON ↔ SQL converter is not available yet'),
-  },
-];
-
 /**
- * Создает реестр конвертеров, включая заглушки для будущих направлений
+ * Создает реестр конвертеров приложения
  */
 export function createConverterRegistry(): ConverterRegistry {
   const converters: TextConverter[] = [
     new MarkdownJiraConverter(),
-    ...PLACEHOLDERS,
+    new JiraMarkdownConverter(),
+    new MarkdownHtmlConverter(),
+    new HtmlMarkdownConverter(),
+    defineConverter(
+      'json-yaml',
+      'JSON → YAML',
+      'json',
+      'yaml',
+      'JSON',
+      'YAML',
+      jsonToYaml,
+    ),
+    defineConverter(
+      'yaml-json',
+      'YAML → JSON',
+      'yaml',
+      'json',
+      'YAML',
+      'JSON',
+      yamlToJson,
+    ),
+    defineConverter(
+      'json-sql',
+      'JSON → SQL',
+      'json',
+      'sql',
+      'JSON',
+      'SQL',
+      jsonToSql,
+    ),
+    defineConverter(
+      'sql-json',
+      'SQL → JSON',
+      'sql',
+      'json',
+      'SQL',
+      'JSON',
+      sqlToJson,
+    ),
   ];
   const byId = new Map(
     converters.map((converter) => [converter.id, converter]),

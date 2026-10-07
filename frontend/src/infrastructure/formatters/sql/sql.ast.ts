@@ -8,6 +8,11 @@ export type NumberExpr = {
   value: string;
 };
 
+export type PlaceholderExpr = {
+  type: 'placeholder';
+  value: string;
+};
+
 export type StringExpr = {
   type: 'string';
   value: string;
@@ -130,7 +135,8 @@ export type SqlExpr =
   | SubqueryExpr
   | ParenExpr
   | IntervalExpr
-  | PgCastExpr;
+  | PgCastExpr
+  | PlaceholderExpr;
 
 export type SelectItem = {
   expr: SqlExpr;
@@ -148,6 +154,8 @@ export type JoinClause = {
   table: TableRef;
   onKw?: string;
   on?: SqlExpr;
+  usingKw?: string;
+  using?: string[];
 };
 
 export type OrderItem = {
@@ -164,10 +172,14 @@ export type SelectStatement = {
   type: 'select';
   selectKw: string;
   distinctKw?: string;
+  topKw?: string;
+  top?: SqlExpr;
   columns: SelectItem[];
   fromKw?: string;
   from?: TableRef;
   joins: JoinClause[];
+  prewhereKw?: string;
+  prewhere?: SqlExpr;
   whereKw?: string;
   where?: SqlExpr;
   groupByKw?: [string, string];
@@ -178,6 +190,7 @@ export type SelectStatement = {
   orderBy: OrderItem[];
   limitKw?: string;
   limit?: SqlExpr;
+  limitComma?: boolean;
   offsetKw?: string;
   offset?: SqlExpr;
 };

@@ -88,6 +88,76 @@ describe('SqlFormatter', () => {
     expect(result.ok).toBe(false);
   });
 
+  it('keeps ? and %s placeholders as values', () => {
+    const result = formatter.format(
+      'select * from users where id = ? and name = %s',
+      DEFAULT_SQL_OPTIONS,
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.value).toBe(
+        [
+          'SELECT',
+          '    *',
+          'FROM users',
+          'WHERE id = ?',
+          '    AND name = %s',
+        ].join('\n'),
+      );
+    }
+  });
+
+  it('formats mssql, clickhouse and sqlite dialect fragments', () => {
+    const mssql = formatter.format(
+      'select top 5 [id] from [dbo].[users] where [id] = @id',
+      DEFAULT_SQL_OPTIONS,
+    );
+    const clickhouse = formatter.format(
+      'select * from events final prewhere user_id = {user} limit 10, 20',
+      DEFAULT_SQL_OPTIONS,
+    );
+    const sqlite = formatter.format(
+      "select * from t where name glob 'A%' limit 1",
+      DEFAULT_SQL_OPTIONS,
+    );
+
+    expect(mssql.ok).toBe(true);
+    expect(clickhouse.ok).toBe(true);
+    expect(sqlite.ok).toBe(true);
+
+    if (mssql.ok) {
+      expect(mssql.value).toContain('SELECT TOP 5');
+      expect(mssql.value).toContain('[dbo].[users]');
+      expect(mssql.value).toContain('@id');
+    }
+
+    if (clickhouse.ok) {
+      expect(clickhouse.value).toContain('PREWHERE');
+      expect(clickhouse.value).toContain('LIMIT 10, 20');
+      expect(clickhouse.value).toContain('{user}');
+    }
+
+    if (sqlite.ok) {
+      expect(sqlite.value.toUpperCase()).toContain('GLOB');
+    }
+  });
+
+  it('formats incomplete sql instead of failing', () => {
+    const result = formatter.format(
+      'select a, b from t where',
+      DEFAULT_SQL_OPTIONS,
+    );
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.value.toUpperCase()).toContain('SELECT');
+      expect(result.value.toUpperCase()).toContain('WHERE');
+    }
+  });
+
   it('formats postgres interval literals', () => {
     const result = formatter.format(
       "select now() - interval '4320 hours' from t",
