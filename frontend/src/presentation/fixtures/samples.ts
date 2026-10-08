@@ -51,6 +51,10 @@ where 1=1 and key1 = 'some'
 group by key2, key3
 order by key, key4
 having SOMEKEY = 1 and key = 1`,
+  html: `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Release notes</title></head><body><h1 class="title" id="top" data-ready="true">Release notes</h1><p>Ship <strong>HTML</strong> with a <a href="https://example.com">link</a>.</p><ul><li>Nested<ul><li>lists</li></ul></li></ul><pre><code>const ready = true;</code></pre><script>
+const ready = true;
+if (ready) { console.log("ok"); }
+</script></body></html>`,
 };
 
 /**

@@ -3,6 +3,7 @@
   <url><loc>https://conv.soltanov.dev/formatter/json</loc></url>
   <url><loc>https://conv.soltanov.dev/formatter/yaml</loc></url>
   <url><loc>https://conv.soltanov.dev/formatter/sql</loc></url>
+  <url><loc>https://conv.soltanov.dev/formatter/html</loc></url>
   <url><loc>https://conv.soltanov.dev/converter/markdown-jira</loc></url>
   <url><loc>https://conv.soltanov.dev/converter/jira-markdown</loc></url>
   <url><loc>https://conv.soltanov.dev/converter/markdown-html</loc></url>

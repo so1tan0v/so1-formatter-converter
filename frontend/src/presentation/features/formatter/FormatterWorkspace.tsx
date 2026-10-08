@@ -18,9 +18,13 @@ import { formatText } from '@application/format-text';
  * Imports from domain
  */
 import {
+  DEFAULT_HTML_OPTIONS,
   defaultOptionsFor,
   type FormatterId,
   type FormatterOptionsMap,
+  type HtmlScriptIndent,
+  type HtmlTemplating,
+  type HtmlWrapAttributes,
   type OutputMode,
   type SqlKeywordCase,
   type YamlNullStyle,
@@ -73,6 +77,21 @@ interface FormatterFormValues {
   lineWidth: number;
   nullStyle: YamlNullStyle;
   keywordCase: SqlKeywordCase;
+  wrapAttributes: HtmlWrapAttributes;
+  wrapAttributesMin: number;
+  wrapLineLength: number;
+  indentInnerHtml: boolean;
+  indentHead: boolean;
+  indentBody: boolean;
+  preserveNewlines: boolean;
+  maxPreserveNewlines: number;
+  endWithNewline: boolean;
+  indentScripts: HtmlScriptIndent;
+  extraLiners: boolean;
+  indentHandlebars: boolean;
+  inlineCustomElements: boolean;
+  templating: HtmlTemplating;
+  formatPre: boolean;
 }
 
 /**
@@ -296,6 +315,8 @@ function optionDefaults(
           mode: 'pretty' as const,
         };
 
+  const html = 'wrapAttributes' in options ? options : DEFAULT_HTML_OPTIONS;
+
   return {
     indent: jsonLike.indent,
     mode: jsonLike.mode,
@@ -311,6 +332,21 @@ function optionDefaults(
     lineWidth: 'lineWidth' in options ? options.lineWidth : 80,
     nullStyle: 'nullStyle' in options ? options.nullStyle : 'null',
     keywordCase: 'keywordCase' in options ? options.keywordCase : 'upper',
+    wrapAttributes: html.wrapAttributes,
+    wrapAttributesMin: html.wrapAttributesMin,
+    wrapLineLength: html.wrapLineLength,
+    indentInnerHtml: html.indentInnerHtml,
+    indentHead: html.indentHead,
+    indentBody: html.indentBody,
+    preserveNewlines: html.preserveNewlines,
+    maxPreserveNewlines: html.maxPreserveNewlines,
+    endWithNewline: html.endWithNewline,
+    indentScripts: html.indentScripts,
+    extraLiners: html.extraLiners,
+    indentHandlebars: html.indentHandlebars,
+    inlineCustomElements: html.inlineCustomElements,
+    templating: html.templating,
+    formatPre: html.formatPre,
   };
 }
 
@@ -333,6 +369,27 @@ function toFormatterOptions(
     return {
       indent: values.indent,
       keywordCase: values.keywordCase,
+    };
+  }
+
+  if (id === 'html') {
+    return {
+      indent: values.indent,
+      wrapAttributes: values.wrapAttributes,
+      wrapAttributesMin: Number(values.wrapAttributesMin),
+      wrapLineLength: Number(values.wrapLineLength),
+      indentInnerHtml: values.indentInnerHtml,
+      indentHead: values.indentHead,
+      indentBody: values.indentBody,
+      preserveNewlines: values.preserveNewlines,
+      maxPreserveNewlines: Number(values.maxPreserveNewlines),
+      endWithNewline: values.endWithNewline,
+      indentScripts: values.indentScripts,
+      extraLiners: values.extraLiners,
+      indentHandlebars: values.indentHandlebars,
+      inlineCustomElements: values.inlineCustomElements,
+      templating: values.templating,
+      formatPre: values.formatPre,
     };
   }
 

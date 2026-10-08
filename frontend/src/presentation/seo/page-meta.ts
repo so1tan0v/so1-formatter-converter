@@ -7,7 +7,7 @@ export interface PageMeta {
 export const SITE_NAME = 'so1tan0v@fmt';
 
 const SITE_DESCRIPTION =
-  'Format JSON, YAML and SQL. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
+  'Format JSON, YAML, SQL and HTML. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
 
 /**
  * Страницы, которые должны попадать в поиск отдельными результатами
@@ -28,6 +28,12 @@ export const INDEXABLE_PAGES: PageMeta[] = [
     path: '/formatter/sql',
     title: 'SQL formatter',
     description: 'Format SQL with consistent keywords and indentation.',
+  },
+  {
+    path: '/formatter/html',
+    title: 'HTML formatter',
+    description:
+      'Format HTML with attribute wrapping, indentation and template-aware layout.',
   },
   {
     path: '/converter/markdown-jira',
@@ -83,7 +89,7 @@ export const INDEXABLE_PAGES: PageMeta[] = [
 
 const FALLBACK_PAGE: PageMeta = {
   path: '/formatter/json',
-  title: 'JSON, YAML and SQL formatter',
+  title: 'JSON, YAML, SQL and HTML formatter',
   description: SITE_DESCRIPTION,
 };
 

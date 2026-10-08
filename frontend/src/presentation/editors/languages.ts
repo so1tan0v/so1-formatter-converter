@@ -20,6 +20,8 @@ export function inputLanguageFor(id: FormatterId): EditorLanguage {
       return 'yaml';
     case 'sql':
       return 'sql';
+    case 'html':
+      return 'html';
   }
 }
 
@@ -44,6 +46,8 @@ export function outputLanguageFor(
       return 'yaml';
     case 'sql':
       return 'sql';
+    case 'html':
+      return 'html';
   }
 }
 

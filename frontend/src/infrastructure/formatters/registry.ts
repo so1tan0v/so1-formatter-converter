@@ -12,18 +12,20 @@ import type { FormatterId } from '@domain/formatter/types';
 /**
  * Imports from relative
  */
+import { HtmlFormatter } from './html/html.formatter';
 import { JsonFormatter } from './json/json.formatter';
 import { SqlFormatter } from './sql/sql.formatter';
 import { YamlFormatter } from './yaml/yaml.formatter';
 
 /**
- * Создает реестр форматтеров JSON, YAML и SQL
+ * Создает реестр форматтеров JSON, YAML, SQL и HTML
  */
 export function createFormatterRegistry(): FormatterRegistry {
   const formatters: TextFormatter[] = [
     new JsonFormatter(),
     new YamlFormatter(),
     new SqlFormatter(),
+    new HtmlFormatter(),
   ];
   const byId = new Map(
     formatters.map((formatter) => [formatter.id, formatter]),

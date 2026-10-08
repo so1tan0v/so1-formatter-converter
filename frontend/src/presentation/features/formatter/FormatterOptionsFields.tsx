@@ -6,7 +6,13 @@ import { Field } from 'formik';
 /**
  * Imports from domain
  */
-import { OUTPUT_MODES, SQL_KEYWORD_CASES } from '@domain/formatter/types';
+import {
+  HTML_SCRIPT_INDENTS,
+  HTML_TEMPLATING,
+  HTML_WRAP_ATTRIBUTES,
+  OUTPUT_MODES,
+  SQL_KEYWORD_CASES,
+} from '@domain/formatter/types';
 import type { FormatterId } from '@domain/formatter/types';
 import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
 
@@ -25,6 +31,28 @@ const MODE_LABELS: Record<(typeof OUTPUT_MODES)[number], string> = {
   pretty: 'Pretty',
   compact: 'One line',
   escaped: 'Escaped string',
+};
+
+const WRAP_ATTRIBUTE_LABELS: Record<
+  (typeof HTML_WRAP_ATTRIBUTES)[number],
+  string
+> = {
+  auto: 'Auto',
+  force: 'Each attribute',
+  'force-aligned': 'Aligned',
+  'force-expand-multiline': 'Expand multiline',
+  'aligned-multiple': 'Align multiple',
+  preserve: 'Preserve',
+  'preserve-aligned': 'Preserve aligned',
+};
+
+const SCRIPT_INDENT_LABELS: Record<
+  (typeof HTML_SCRIPT_INDENTS)[number],
+  string
+> = {
+  normal: 'Normal',
+  keep: 'Keep',
+  separate: 'Separate',
 };
 
 /**
@@ -48,7 +76,7 @@ export function FormatterOptionsFields({
         </Field>
       </label>
 
-      {formatterId !== 'sql' ? (
+      {formatterId === 'json' || formatterId === 'yaml' ? (
         <label className="tui-field" htmlFor="mode">
           <span className="tui-field__name">Style</span>
           <Field as="select" id="mode" name="mode" className="tui-select">
@@ -66,7 +94,130 @@ export function FormatterOptionsFields({
       {formatterId === 'yaml' ? <YamlExtraFields /> : null}
 
       {formatterId === 'sql' ? <SqlExtraFields /> : null}
+
+      {formatterId === 'html' ? <HtmlExtraFields /> : null}
     </div>
+  );
+}
+
+function HtmlExtraFields() {
+  return (
+    <>
+      <label className="tui-field" htmlFor="wrapAttributes">
+        <span className="tui-field__name">Attributes</span>
+        <Field
+          as="select"
+          id="wrapAttributes"
+          name="wrapAttributes"
+          className="tui-select"
+        >
+          {HTML_WRAP_ATTRIBUTES.map((value) => (
+            <option key={value} value={value}>
+              {WRAP_ATTRIBUTE_LABELS[value]}
+            </option>
+          ))}
+        </Field>
+      </label>
+      <label className="tui-field" htmlFor="wrapAttributesMin">
+        <span className="tui-field__name">Min attributes</span>
+        <Field
+          id="wrapAttributesMin"
+          name="wrapAttributesMin"
+          type="number"
+          min="1"
+          max="20"
+          className="tui-select tui-select--num"
+        />
+      </label>
+      <label className="tui-field" htmlFor="wrapLineLength">
+        <span className="tui-field__name">Line width</span>
+        <Field
+          id="wrapLineLength"
+          name="wrapLineLength"
+          type="number"
+          min="0"
+          max="400"
+          className="tui-select tui-select--num"
+        />
+      </label>
+      <label className="tui-field" htmlFor="indentScripts">
+        <span className="tui-field__name">Scripts</span>
+        <Field
+          as="select"
+          id="indentScripts"
+          name="indentScripts"
+          className="tui-select"
+        >
+          {HTML_SCRIPT_INDENTS.map((value) => (
+            <option key={value} value={value}>
+              {SCRIPT_INDENT_LABELS[value]}
+            </option>
+          ))}
+        </Field>
+      </label>
+      <label className="tui-field" htmlFor="templating">
+        <span className="tui-field__name">Templates</span>
+        <Field
+          as="select"
+          id="templating"
+          name="templating"
+          className="tui-select"
+        >
+          {HTML_TEMPLATING.map((value) => (
+            <option key={value} value={value}>
+              {value === 'auto' ? 'Auto' : 'Off'}
+            </option>
+          ))}
+        </Field>
+      </label>
+      <label className="tui-field" htmlFor="maxPreserveNewlines">
+        <span className="tui-field__name">Max blank lines</span>
+        <Field
+          id="maxPreserveNewlines"
+          name="maxPreserveNewlines"
+          type="number"
+          min="0"
+          max="20"
+          className="tui-select tui-select--num"
+        />
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="indentInnerHtml" />
+        <span>Indent contents</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="indentHead" />
+        <span>Indent head</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="indentBody" />
+        <span>Indent body</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="preserveNewlines" />
+        <span>Keep newlines</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="endWithNewline" />
+        <span>End with newline</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="extraLiners" />
+        <span>Blank line before blocks</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="indentHandlebars" />
+        <span>Indent Handlebars</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="inlineCustomElements" />
+        <span>Inline custom elements</span>
+      </label>
+      <label className="tui-check">
+        <Field type="checkbox" name="formatPre" />
+        <span>Format pre</span>
+      </label>
+    </>
   );
 }
 
