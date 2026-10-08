@@ -107,6 +107,12 @@ export type SubqueryExpr = {
   select: SelectStatement;
 };
 
+export type ExistsExpr = {
+  type: 'exists';
+  existsKw: string;
+  select: SelectStatement;
+};
+
 export type ParenExpr = {
   type: 'paren';
   expr: SqlExpr;
@@ -133,6 +139,7 @@ export type SqlExpr =
   | IsNullExpr
   | CaseExpr
   | SubqueryExpr
+  | ExistsExpr
   | ParenExpr
   | IntervalExpr
   | PgCastExpr

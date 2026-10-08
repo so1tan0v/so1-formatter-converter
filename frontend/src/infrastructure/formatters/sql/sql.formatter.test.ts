@@ -158,6 +158,49 @@ describe('SqlFormatter', () => {
     }
   });
 
+  it('formats postgres any-cast and exists subquery', () => {
+    const result = formatter.format(
+      "SELECT id, type_id, upscale_status, bucket_name, file_name, file_size, width, height, hash, meta, created_at, updated_at, purge_after FROM media WHERE upscale_status = ANY(CAST( '{in_progress}' AS text[])::upscale_status_enum[]) AND (upscale_status <> 'in_progress' OR NOT EXISTS (SELECT 1 FROM upscale_task WHERE media_id = media.id)) ORDER BY id LIMIT 500",
+      DEFAULT_SQL_OPTIONS,
+    );
+
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+
+    expect(result.value).toBe(
+      [
+        'SELECT',
+        '    id,',
+        '    type_id,',
+        '    upscale_status,',
+        '    bucket_name,',
+        '    file_name,',
+        '    file_size,',
+        '    width,',
+        '    height,',
+        '    hash,',
+        '    meta,',
+        '    created_at,',
+        '    updated_at,',
+        '    purge_after',
+        'FROM media',
+        "WHERE upscale_status = ANY(CAST('{in_progress}' AS text[])::upscale_status_enum[])",
+        '    AND (',
+        "        upscale_status <> 'in_progress'",
+        '        OR NOT EXISTS (',
+        '            SELECT',
+        '                1',
+        '            FROM upscale_task',
+        '            WHERE media_id = media.id',
+        '        )',
+        '    )',
+        'ORDER BY id',
+        'LIMIT 500',
+      ].join('\n'),
+    );
+  });
+
   it('formats postgres interval literals', () => {
     const result = formatter.format(
       "select now() - interval '4320 hours' from t",

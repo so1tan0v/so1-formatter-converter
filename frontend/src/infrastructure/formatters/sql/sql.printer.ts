@@ -140,9 +140,10 @@ function printSelect(statement: SelectStatement, ctx: PrintContext): string {
   }
 
   if (statement.limit && statement.limitKw) {
-    const limitValue = statement.limitComma && statement.offset
-      ? `${printInline(statement.limit, ctx)}, ${printInline(statement.offset, ctx)}`
-      : printInline(statement.limit, ctx);
+    const limitValue =
+      statement.limitComma && statement.offset
+        ? `${printInline(statement.limit, ctx)}, ${printInline(statement.offset, ctx)}`
+        : printInline(statement.limit, ctx);
 
     lines.push(`${kw(statement.limitKw, ctx)} ${limitValue}`);
   }
@@ -348,9 +349,7 @@ function printJoinHeader(join: JoinClause, ctx: PrintContext): string {
 
 function printJoinOn(join: JoinClause, ctx: PrintContext): string[] {
   if (join.usingKw && join.using && join.using.length > 0) {
-    return [
-      `${ctx.indent}${kw(join.usingKw, ctx)} (${join.using.join(', ')})`,
-    ];
+    return [`${ctx.indent}${kw(join.usingKw, ctx)} (${join.using.join(', ')})`];
   }
 
   if (!join.on || !join.onKw) {
@@ -369,16 +368,115 @@ function printLeadingBool(
 ): string[] {
   if (expr.type === 'bool') {
     const [first, ...rest] = expr.items;
-    const lines = [`${kw(keyword, ctx)} ${printInline(first, ctx)}`];
+    const lines = attachClause(
+      `${kw(keyword, ctx)} `,
+      printClauseItem(first, ctx, ''),
+    );
 
     for (const item of rest) {
-      lines.push(`${ctx.indent}${kw(expr.op, ctx)} ${printInline(item, ctx)}`);
+      lines.push(
+        ...attachClause(
+          `${ctx.indent}${kw(expr.op, ctx)} `,
+          printClauseItem(item, ctx, ctx.indent),
+        ),
+      );
     }
 
     return lines;
   }
 
-  return [`${kw(keyword, ctx)} ${printInline(expr, ctx)}`];
+  return attachClause(`${kw(keyword, ctx)} `, printClauseItem(expr, ctx, ''));
+}
+
+function attachClause(prefix: string, lines: string[]): string[] {
+  const [first, ...rest] = lines;
+
+  return [`${prefix}${first ?? ''}`, ...rest];
+}
+
+function printClauseItem(
+  expr: SqlExpr,
+  ctx: PrintContext,
+  pad: string,
+): string[] {
+  if (!containsSubquery(expr)) {
+    return [printInline(expr, ctx)];
+  }
+
+  return layoutExpr(expr, ctx, pad);
+}
+
+function layoutExpr(expr: SqlExpr, ctx: PrintContext, pad: string): string[] {
+  if (expr.type === 'paren') {
+    const inner = layoutExpr(expr.expr, ctx, `${pad}${ctx.indent}`);
+
+    return ['(', ...inner, `${pad})`];
+  }
+
+  if (expr.type === 'bool') {
+    const lines: string[] = [];
+
+    expr.items.forEach((item, index) => {
+      const itemLines = layoutExpr(item, ctx, pad);
+      const op = index === 0 ? '' : `${kw(expr.op, ctx)} `;
+
+      lines.push(`${pad}${op}${itemLines[0] ?? ''}`, ...itemLines.slice(1));
+    });
+
+    return lines;
+  }
+
+  if (expr.type === 'unary' && containsSubquery(expr.expr)) {
+    const inner = layoutExpr(expr.expr, ctx, pad);
+
+    return [`${kw(expr.op, ctx)} ${inner[0] ?? ''}`, ...inner.slice(1)];
+  }
+
+  if (expr.type === 'exists') {
+    const body = printSelect(expr.select, ctx)
+      .split('\n')
+      .map((line) => `${pad}${ctx.indent}${line}`);
+
+    return [`${kw(expr.existsKw, ctx)} (`, ...body, `${pad})`];
+  }
+
+  return [printInline(expr, ctx)];
+}
+
+function containsSubquery(expr: SqlExpr): boolean {
+  switch (expr.type) {
+    case 'subquery':
+    case 'exists':
+      return true;
+    case 'paren':
+    case 'unary':
+    case 'cast-pg':
+      return containsSubquery(expr.expr);
+    case 'bool':
+      return expr.items.some(containsSubquery);
+    case 'binary':
+      return containsSubquery(expr.left) || containsSubquery(expr.right);
+    case 'call':
+      return expr.args.some(containsSubquery);
+    case 'in':
+      return containsSubquery(expr.expr) || expr.values.some(containsSubquery);
+    case 'between':
+      return (
+        containsSubquery(expr.expr) ||
+        containsSubquery(expr.from) ||
+        containsSubquery(expr.to)
+      );
+    case 'case':
+      return (
+        (expr.discriminant ? containsSubquery(expr.discriminant) : false) ||
+        expr.whens.some(
+          (item) => containsSubquery(item.when) || containsSubquery(item.then),
+        ) ||
+        (expr.elseExpr ? containsSubquery(expr.elseExpr) : false)
+      );
+    default:
+      return false;
+  }
 }
 
 function printHangingList(
@@ -513,6 +611,23 @@ function printBlockExpr(
     return lines.join('\n');
   }
 
+  if (expr.type === 'exists') {
+    const inner = printSelect(expr.select, ctx);
+    const innerLines = inner
+      .split('\n')
+      .map((line) => `${pad}${ctx.indent}${line}`);
+
+    return `${pad}${kw(expr.existsKw, ctx)} (\n${innerLines.join('\n')}\n${pad})`;
+  }
+
+  if (expr.type === 'unary' && isMultiline(expr.expr)) {
+    const inner = printBlockExpr(expr.expr, depth, ctx);
+    const [first, ...rest] = inner.split('\n');
+    const body = first.startsWith(pad) ? first.slice(pad.length) : first;
+
+    return [`${pad}${kw(expr.op, ctx)} ${body}`, ...rest].join('\n');
+  }
+
   if (expr.type === 'subquery') {
     const inner = printSelect(expr.select, ctx);
     const innerLines = inner
@@ -575,6 +690,14 @@ function printInline(expr: SqlExpr, ctx: PrintContext): string {
         return `${formatFunctionName(expr.name, ctx)}(${printInline(expr.args[0], ctx)} ${kw('AS', ctx)} ${printInline(expr.args[1], ctx)})`;
       }
 
+      if (isQuantifiedSubquery(expr)) {
+        const arg = expr.args[0];
+
+        if (arg.type === 'subquery') {
+          return `${formatFunctionName(expr.name, ctx)}(${printInlineSelect(arg.select, ctx)})`;
+        }
+      }
+
       return `${formatFunctionName(expr.name, ctx)}(${expr.args.map((arg) => printInline(arg, ctx)).join(', ')})`;
     case 'binary':
       return `${printInline(expr.left, ctx)} ${printWordOp(expr.op, ctx)} ${printInline(expr.right, ctx)}`;
@@ -608,6 +731,8 @@ function printInline(expr: SqlExpr, ctx: PrintContext): string {
         .join(' ');
     case 'subquery':
       return `(${printInlineSelect(expr.select, ctx)})`;
+    case 'exists':
+      return `${kw(expr.existsKw, ctx)} (${printInlineSelect(expr.select, ctx)})`;
     case 'paren':
       return `(${printInline(expr.expr, ctx)})`;
     case 'interval':
@@ -634,7 +759,11 @@ function printInlineSelect(select: SelectStatement, ctx: PrintContext): string {
 }
 
 function isMultiline(expr: SqlExpr): boolean {
-  if (expr.type === 'case' || expr.type === 'subquery') {
+  if (
+    expr.type === 'case' ||
+    expr.type === 'subquery' ||
+    expr.type === 'exists'
+  ) {
     return true;
   }
 
@@ -642,7 +771,7 @@ function isMultiline(expr: SqlExpr): boolean {
     return isMultilineCall(expr);
   }
 
-  if (expr.type === 'paren') {
+  if (expr.type === 'paren' || expr.type === 'unary') {
     return isMultiline(expr.expr);
   }
 
@@ -650,11 +779,26 @@ function isMultiline(expr: SqlExpr): boolean {
 }
 
 function isMultilineCall(expr: CallExpr): boolean {
+  if (isQuantifiedSubquery(expr)) {
+    return false;
+  }
+
   if (expr.name.toUpperCase() === 'IF') {
     return true;
   }
 
   return expr.args.some(isMultiline);
+}
+
+function isQuantifiedSubquery(expr: CallExpr): boolean {
+  const name = expr.name.toUpperCase();
+  const arg = expr.args[0];
+
+  return (
+    (name === 'ANY' || name === 'ALL' || name === 'SOME') &&
+    expr.args.length === 1 &&
+    arg?.type === 'subquery'
+  );
 }
 
 function formatFunctionName(name: string, ctx: PrintContext): string {

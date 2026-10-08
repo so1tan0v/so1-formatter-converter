@@ -992,7 +992,7 @@ class SqlParser {
       expr = {
         type: 'cast-pg',
         expr,
-        typeName: this.parseIdentPath(),
+        typeName: this.parseTypeName(),
       };
     }
 
@@ -1115,11 +1115,36 @@ class SqlParser {
       return { type: 'ident', parts: nameParts };
     }
 
+    if (name.toUpperCase() === 'EXISTS' && this.atKeyword('SELECT')) {
+      const select = this.parseSelect();
+
+      this.expectPunct(')');
+
+      return { type: 'exists', existsKw: name, select };
+    }
+
+    if (
+      this.atKeyword('SELECT') &&
+      (name.toUpperCase() === 'ANY' ||
+        name.toUpperCase() === 'ALL' ||
+        name.toUpperCase() === 'SOME')
+    ) {
+      const select = this.parseSelect();
+
+      this.expectPunct(')');
+
+      return {
+        type: 'call',
+        name,
+        args: [{ type: 'subquery', select }],
+      };
+    }
+
     if (name.toUpperCase() === 'CAST') {
       const expr = this.parseExpr();
 
       this.expectKeyword('AS');
-      const typeName = this.parseIdentPath();
+      const typeName = this.parseTypeName();
 
       this.expectPunct(')');
 
@@ -1173,6 +1198,24 @@ class SqlParser {
       elseExpr,
       endKw,
     };
+  }
+
+  private parseTypeName(): string[] {
+    const parts = this.parseIdentPath();
+    const last = parts.length - 1;
+
+    while (this.atArrayBrackets()) {
+      this.eat();
+      parts[last] += '[]';
+    }
+
+    return parts;
+  }
+
+  private atArrayBrackets(): boolean {
+    const token = this.peek();
+
+    return token.type === 'ident' && token.raw === '[]';
   }
 
   private parseIdentPath(): string[] {

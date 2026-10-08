@@ -140,6 +140,9 @@ export const CLAUSE_STARTERS = new Set([
  */
 export const SQL_FUNCTIONS = new Set([
   'IF',
+  'ANY',
+  'ALL',
+  'SOME',
   'IFNULL',
   'NULLIF',
   'COALESCE',

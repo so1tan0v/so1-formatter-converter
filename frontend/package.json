@@ -1,7 +1,7 @@
 {
   "name": "so1-formatter-converter",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite --port 5174 --host=0.0.0.0",
