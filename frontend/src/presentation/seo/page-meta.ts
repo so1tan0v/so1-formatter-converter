@@ -7,7 +7,7 @@ export interface PageMeta {
 export const SITE_NAME = 'so1tan0v@fmt';
 
 const SITE_DESCRIPTION =
-  'Format JSON, YAML and SQL. Convert Markdown, Jira markup, HTML, JSON and YAML in the browser.';
+  'Format JSON, YAML and SQL. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
 
 /**
  * Страницы, которые должны попадать в поиск отдельными результатами
@@ -73,6 +73,11 @@ export const INDEXABLE_PAGES: PageMeta[] = [
     path: '/viewer/markdown',
     title: 'Markdown viewer',
     description: 'Preview Markdown with highlighted code blocks.',
+  },
+  {
+    path: '/viewer/jira',
+    title: 'Jira viewer',
+    description: 'Preview Jira wiki markup as HTML.',
   },
 ];
 

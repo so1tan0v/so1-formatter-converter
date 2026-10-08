@@ -199,7 +199,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
             >
               <CodeEditor
                 value={values.source}
-                language="markdown"
+                language={viewer.editorLanguage}
                 ariaLabel={`${viewer.label} input`}
                 onChange={(next) => {
                   void setFieldValue('source', next);

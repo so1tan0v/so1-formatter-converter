@@ -127,4 +127,21 @@ const ready = true;
 | --- | --- |
 | Render | **ok** |
 `,
+  jira: `h1. Release notes
+
+h2. Shipping
+
+Ship *Jira* markup to the preview.
+
+* Nested
+** lists
+* [Docs|https://example.com]
+
+{code:ts}
+const ready = true;
+{code}
+
+||Step||Status||
+|Render|*ok*|
+`,
 };

@@ -12,13 +12,14 @@ import type { ViewerId } from '@domain/viewer/types';
 /**
  * Imports from relative
  */
+import { JiraViewer } from './jira/jira.viewer';
 import { MarkdownViewer } from './markdown/markdown.viewer';
 
 /**
  * Создает реестр просмотрщиков документов
  */
 export function createViewerRegistry(): ViewerRegistry {
-  const viewers: TextViewer[] = [new MarkdownViewer()];
+  const viewers: TextViewer[] = [new MarkdownViewer(), new JiraViewer()];
   const byId = new Map(viewers.map((viewer) => [viewer.id, viewer]));
 
   return {

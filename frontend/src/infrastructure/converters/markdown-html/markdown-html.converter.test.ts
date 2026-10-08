@@ -42,7 +42,7 @@ describe('markdownToHtml', () => {
     expect(html).toContain('<a href="#">js</a>');
     expect(html).toContain('<a href="#">proto</a>');
     expect(html).toContain(
-      'href="https://example.com&quot;onclick=&quot;alert(1"',
+      'href="https://example.com&quot;onclick=&quot;alert(1)"',
     );
     expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;');
     expect(html).not.toMatch(/<a\s[^>]*\son[a-z]+=/i);

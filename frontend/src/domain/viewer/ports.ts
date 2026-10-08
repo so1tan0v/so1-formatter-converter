@@ -30,6 +30,11 @@ export interface TextViewer {
   readonly sourceLabel: string;
 
   /**
+   * Язык подсветки поля ввода
+   */
+  readonly editorLanguage: 'markdown' | 'plaintext';
+
+  /**
    * Рендерит исходный текст в HTML для предпросмотра
    *
    * @param input Исходный текст документа

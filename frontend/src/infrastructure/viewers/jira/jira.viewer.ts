@@ -8,19 +8,20 @@ import type { TextViewer } from '@domain/viewer/ports';
  * Imports from infrastructure
  */
 import { convertSource } from '@infrastructure/converters/convert-source';
+import { jiraToMarkdown } from '@infrastructure/converters/markdown-jira/jira-to-markdown';
 import { markdownToHtml } from '@infrastructure/converters/markdown-html/markdown-to-html';
 import { decorateCodeBlocks } from '@infrastructure/viewers/markdown/decorate-code-blocks';
 
-export class MarkdownViewer implements TextViewer {
+export class JiraViewer implements TextViewer {
   /**
-   * Идентификатор просмотрщика Markdown
+   * Идентификатор просмотрщика Jira
    */
-  readonly id = 'markdown' as const;
+  readonly id = 'jira' as const;
 
   /**
    * Подпись просмотрщика в интерфейсе
    */
-  readonly label = 'Markdown';
+  readonly label = 'Jira';
 
   /**
    * Признак, что просмотрщик уже доступен пользователю
@@ -30,21 +31,21 @@ export class MarkdownViewer implements TextViewer {
   /**
    * Подпись поля ввода
    */
-  readonly sourceLabel = 'Markdown';
+  readonly sourceLabel = 'Jira Markup';
 
   /**
    * Язык подсветки поля ввода
    */
-  readonly editorLanguage = 'markdown' as const;
+  readonly editorLanguage = 'plaintext' as const;
 
   /**
-   * Рендерит Markdown в HTML
+   * Рендерит разметку Jira в HTML
    *
-   * @param input Исходный Markdown-текст
+   * @param input Исходный текст в разметке Jira
    */
   render(input: string): Result<string> {
     return convertSource(input, (source) =>
-      decorateCodeBlocks(markdownToHtml(source)),
+      decorateCodeBlocks(markdownToHtml(jiraToMarkdown(source))),
     );
   }
 }

@@ -866,20 +866,21 @@ html[data-ascii='false'] .tui-panel__rule {
   padding: 0;
 }
 
-.markdown-preview .md-tok--comment {
+.markdown-preview .hljs-comment {
   color: var(--app-fg-muted);
   font-style: italic;
 }
 
-.markdown-preview .md-tok--string {
+.markdown-preview .hljs-string {
   color: var(--app-accent);
 }
 
-.markdown-preview .md-tok--keyword {
+.markdown-preview .hljs-keyword {
   color: var(--app-warn);
 }
 
-.markdown-preview .md-tok--number {
+.markdown-preview .hljs-number,
+.markdown-preview .hljs-literal {
   color: var(--app-label);
 }
 
