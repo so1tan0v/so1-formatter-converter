@@ -2,6 +2,12 @@
  * Imports from packages
  */
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+/**
+ * Imports from app
+ */
+import { formatterRegistry } from '@app/composition';
 
 /**
  * Imports from presentation
@@ -9,6 +15,11 @@ import { useEffect, useState } from 'react';
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { useAppDispatch } from '@presentation/store/hooks';
 import { setSource } from '@presentation/store/workspace.slice';
+import { usePanelOpen } from '@presentation/hooks/usePanelOpen';
+import {
+  formatWithSavedOptions,
+  formatterIdForDifferLanguage,
+} from '@presentation/features/transfer/tool-transfer';
 import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
 import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { DiffCodeEditor } from '@presentation/editors/DiffCodeEditor';
@@ -44,9 +55,13 @@ const SAMPLE_DRAFT: DifferDraft = {
  */
 export function DifferWorkspace() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [draft, setDraft] = useState<DifferDraft>(readDraft);
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
   const [collapseUnchanged, setCollapseUnchanged] = useState(false);
+  const [fastError, setFastError] = useState<string | null>(null);
+  const settings = usePanelOpen('differ');
+  const formatterId = formatterIdForDifferLanguage(draft.language);
 
   useEffect(() => {
     dispatch(setSource(draft.original));
@@ -139,9 +154,64 @@ export function DifferWorkspace() {
     );
   };
 
+  const formatSide = (side: DiffSide) => {
+    if (!formatterId) {
+      return;
+    }
+
+    const source = side === 'original' ? draft.original : draft.modified;
+    const result = formatWithSavedOptions(
+      formatterRegistry,
+      formatterId,
+      source,
+    );
+
+    if (!result.ok) {
+      setFastError(result.error);
+
+      return;
+    }
+
+    setFastError(null);
+    setDraft((current) =>
+      side === 'original'
+        ? { ...current, original: result.value }
+        : { ...current, modified: result.value },
+    );
+  };
+
+  const openFormatter = (side: DiffSide) => {
+    if (!formatterId) {
+      return;
+    }
+
+    navigate(`/formatter/${formatterId}`, {
+      state: {
+        formatterHandoff: {
+          formatterId,
+          source: side === 'original' ? draft.original : draft.modified,
+          from: { tool: 'differ', side },
+        },
+      },
+    });
+  };
+
   return (
     <div className="differ-workspace">
-      <AsciiFrame title="Settings" hint="side by side">
+      <AsciiFrame
+        title="Settings"
+        hint="side by side"
+        collapsed={!settings.open}
+        actions={
+          <button
+            type="button"
+            className="tui-inline-cmd"
+            onClick={() => settings.setOpen(!settings.open)}
+          >
+            {settings.open ? '"Hide"' : '"Show"'}
+          </button>
+        }
+      >
         <div className="tui-fields">
           <label className="tui-field" htmlFor="differ-language">
             <span className="tui-field__name">Language</span>
@@ -228,6 +298,22 @@ export function DifferWorkspace() {
               fileName={draft.originalName}
               text={draft.original}
             />
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              disabled={!formatterId || !draft.original.trim()}
+              onClick={() => formatSide('original')}
+            >
+              &quot;Fast&quot;
+            </button>
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              disabled={!formatterId || !draft.original.trim()}
+              onClick={() => openFormatter('original')}
+            >
+              &quot;Formatter&quot;
+            </button>
           </div>
           <div className="differ-side">
             <span className="differ-side__role">Modified</span>
@@ -252,8 +338,29 @@ export function DifferWorkspace() {
               fileName={draft.modifiedName}
               text={draft.modified}
             />
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              disabled={!formatterId || !draft.modified.trim()}
+              onClick={() => formatSide('modified')}
+            >
+              &quot;Fast&quot;
+            </button>
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              disabled={!formatterId || !draft.modified.trim()}
+              onClick={() => openFormatter('modified')}
+            >
+              &quot;Formatter&quot;
+            </button>
           </div>
         </div>
+        {fastError ? (
+          <p className="term-error transfer-error" role="alert">
+            {fastError}
+          </p>
+        ) : null}
         <DiffCodeEditor
           original={draft.original}
           modified={draft.modified}

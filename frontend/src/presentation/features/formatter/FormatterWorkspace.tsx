@@ -3,7 +3,7 @@
  */
 import { Form, Formik, type FormikProps } from 'formik';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Imports from app
@@ -32,7 +32,11 @@ import {
   inputLanguageFor,
   outputLanguageFor,
 } from '@presentation/editors/languages';
-import { writeDifferDraft } from '@presentation/features/differ/differ-draft';
+import {
+  DIFFER_DRAFT_KEY,
+  parseDifferDraft,
+  writeDifferDraft,
+} from '@presentation/features/differ/differ-draft';
 import { locateError } from '@presentation/features/formatter/error-location';
 import { FormatterOptionsFields } from '@presentation/features/formatter/FormatterOptionsFields';
 import { formatterHasAdvancedOptions } from '@presentation/features/formatter/formatter-groups';
@@ -47,10 +51,12 @@ import {
   saveFormatterOptions,
 } from '@presentation/features/formatter/formatter-options';
 import { useFormattedInputSync } from '@presentation/features/formatter/useFormattedInputSync';
+import { readFormatterHandoff } from '@presentation/features/transfer/tool-transfer';
 import { fileNameFor } from '@presentation/files/text-file';
 import { SAMPLE_SOURCES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
+import { usePanelOpen } from '@presentation/hooks/usePanelOpen';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
 import {
   clearResult,
@@ -76,6 +82,7 @@ interface FormatterWorkspaceProps {
 export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
   const formikRef = useRef<FormikProps<FormatterFormValues>>(null);
@@ -84,7 +91,12 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   const [openedName, setOpenedName] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
   const [caretToken, setCaretToken] = useState(0);
+  const settings = usePanelOpen('formatter');
   const formatter = formatterRegistry.get(formatterId);
+  const handed = useMemo(
+    () => readFormatterHandoff(location.state, formatterId),
+    [formatterId, location.state],
+  );
   const historyScope = `formatter:${formatterId}` as const;
   const { entries, remember } = useInputHistory(historyScope);
 
@@ -92,23 +104,27 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
     const stored = historyStore.latest(historyScope);
 
     return {
-      source: stored?.source ?? SAMPLE_SOURCES[formatterId],
+      source: handed?.source ?? stored?.source ?? SAMPLE_SOURCES[formatterId],
       ...loadFormatterOptions(formatterId),
     };
-  }, [formatterId, historyScope]);
+  }, [formatterId, handed, historyScope]);
 
   useEffect(() => {
     const stored = historyStore.latest(historyScope);
 
     dispatch(clearResult());
-    dispatch(setSource(stored?.source ?? SAMPLE_SOURCES[formatterId]));
+    dispatch(
+      setSource(
+        handed?.source ?? stored?.source ?? SAMPLE_SOURCES[formatterId],
+      ),
+    );
     setOpenedName(null);
     setAdvanced(false);
 
-    if (stored?.output) {
+    if (!handed && stored?.output) {
       dispatch(setOutput(stored.output));
     }
-  }, [dispatch, formatterId, historyScope]);
+  }, [dispatch, formatterId, handed, historyScope]);
 
   useEffect(() => {
     const run = async (command: TuiCommand) => {
@@ -234,8 +250,16 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
             <AsciiFrame
               title="Settings"
               hint={formatter.label}
+              collapsed={!settings.open}
               actions={
                 <>
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    onClick={() => settings.setOpen(!settings.open)}
+                  >
+                    {settings.open ? '"Hide"' : '"Show"'}
+                  </button>
                   {formatterHasAdvancedOptions(formatterId) ? (
                     <button
                       type="button"
@@ -377,17 +401,66 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                       className="tui-inline-cmd"
                       disabled={!output || Boolean(error)}
                       onClick={() => {
+                        const current = parseDifferDraft(
+                          window.localStorage.getItem(DIFFER_DRAFT_KEY),
+                        );
+                        const fromDiffer = handed?.from.tool === 'differ';
+                        const side = fromDiffer ? handed.from.side : null;
+
                         writeDifferDraft({
-                          original: values.source,
-                          modified: output,
+                          original:
+                            side === 'modified'
+                              ? (current?.original ?? '')
+                              : side === 'original'
+                                ? output
+                                : values.source,
+                          modified:
+                            side === 'original'
+                              ? (current?.modified ?? '')
+                              : output,
                           language: formatterId,
-                          originalName: openedName ?? `input.${formatterId}`,
-                          modifiedName: `formatted.${formatterId}`,
+                          originalName:
+                            side === 'modified'
+                              ? (current?.originalName ?? 'original')
+                              : side === 'original'
+                                ? (current?.originalName ??
+                                  `formatted.${formatterId}`)
+                                : (openedName ?? `input.${formatterId}`),
+                          modifiedName:
+                            side === 'original'
+                              ? (current?.modifiedName ?? 'modified')
+                              : side === 'modified'
+                                ? (current?.modifiedName ??
+                                  `formatted.${formatterId}`)
+                                : `formatted.${formatterId}`,
                         });
                         navigate('/differ');
                       }}
                     >
                       &quot;Diff&quot;
+                    </button>
+                    <button
+                      type="button"
+                      className="tui-inline-cmd"
+                      disabled={!output || Boolean(error)}
+                      onClick={() => {
+                        const viewerId =
+                          handed?.from.tool === 'viewer'
+                            ? handed.from.viewerId
+                            : 'markdown';
+
+                        historyStore.remember(`viewer:${viewerId}`, {
+                          source: output,
+                          output: '',
+                        });
+                        navigate(`/viewer/${viewerId}`, {
+                          state: {
+                            viewerHandoff: { viewerId, source: output },
+                          },
+                        });
+                      }}
+                    >
+                      &quot;View&quot;
                     </button>
                   </>
                 }

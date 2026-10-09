@@ -9,6 +9,7 @@ interface AsciiFrameProps {
   actions?: ReactNode;
   children: ReactNode;
   fill?: boolean;
+  collapsed?: boolean;
 }
 
 /**
@@ -19,6 +20,7 @@ interface AsciiFrameProps {
  * @param actions Дополнительные элементы в шапке панели
  * @param children Содержимое панели
  * @param fill Признак растягивания панели на доступную высоту
+ * @param collapsed Признак, что тело панели скрыто
  */
 export function AsciiFrame({
   title,
@@ -26,9 +28,18 @@ export function AsciiFrame({
   actions,
   children,
   fill = false,
+  collapsed = false,
 }: AsciiFrameProps) {
+  const classes = [
+    'tui-panel',
+    fill ? 'tui-panel--fill' : '',
+    collapsed ? 'tui-panel--collapsed' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <section className={`tui-panel ${fill ? 'tui-panel--fill' : ''}`.trim()}>
+    <section className={classes}>
       <header className="tui-panel__bar">
         <span className="tui-panel__corner" aria-hidden="true">
           ┌
@@ -44,7 +55,7 @@ export function AsciiFrame({
           ┐
         </span>
       </header>
-      <div className="tui-panel__body">{children}</div>
+      {collapsed ? null : <div className="tui-panel__body">{children}</div>}
     </section>
   );
 }

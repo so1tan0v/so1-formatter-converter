@@ -4,11 +4,16 @@
 import { Form, Formik, type FormikProps } from 'formik';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Imports from app
  */
-import { historyStore, viewerRegistry } from '@app/composition';
+import {
+  formatterRegistry,
+  historyStore,
+  viewerRegistry,
+} from '@app/composition';
 
 /**
  * Imports from application
@@ -18,6 +23,7 @@ import { viewText } from '@application/view-text';
 /**
  * Imports from domain
  */
+import { FORMATTER_IDS, type FormatterId } from '@domain/formatter/types';
 import type { ViewerId } from '@domain/viewer/types';
 
 /**
@@ -28,6 +34,12 @@ import { FileDownloadButton } from '@presentation/components/FileDownloadButton'
 import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
+import {
+  formatWithSavedOptions,
+  readFastFormatterId,
+  readViewerHandoff,
+  writeFastFormatterId,
+} from '@presentation/features/transfer/tool-transfer';
 import { fileNameFor } from '@presentation/files/text-file';
 import { VIEW_SAMPLES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
@@ -56,6 +68,8 @@ interface ViewerFormValues {
  */
 export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
   const formikRef = useRef<FormikProps<ViewerFormValues>>(null);
@@ -63,7 +77,12 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const [fullscreen, setFullscreen] = useState(false);
   const [overlayHost, setOverlayHost] = useState<Element | null>(null);
   const [openedName, setOpenedName] = useState<string | null>(null);
+  const [fastFormatterId, setFastFormatterId] = useState(readFastFormatterId);
   const viewer = viewerRegistry.get(viewerId);
+  const handedSource = useMemo(
+    () => readViewerHandoff(location.state, viewerId),
+    [location.state, viewerId],
+  );
   const sample = VIEW_SAMPLES[viewerId] ?? '';
   const historyScope = `viewer:${viewerId}` as const;
   const { entries, remember } = useInputHistory(historyScope);
@@ -71,8 +90,8 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const initialValues = useMemo<ViewerFormValues>(() => {
     const stored = historyStore.latest(historyScope);
 
-    return { source: stored?.source ?? sample };
-  }, [historyScope, sample]);
+    return { source: handedSource ?? stored?.source ?? sample };
+  }, [handedSource, historyScope, sample]);
 
   const publishPreview = useCallback(
     (source: string) => {
@@ -93,13 +112,15 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
     const stored = historyStore.latest(historyScope);
 
     dispatch(clearResult());
-    dispatch(setSource(stored?.source ?? sample));
+    const source = handedSource ?? stored?.source ?? sample;
+
+    dispatch(setSource(source));
     setOpenedName(null);
 
-    if (stored?.output) {
+    if (handedSource === null && stored?.output) {
       publishPreview(stored.source);
     }
-  }, [dispatch, historyScope, publishPreview, sample]);
+  }, [dispatch, handedSource, historyScope, publishPreview, sample]);
 
   useEffect(() => {
     setOverlayHost(document.querySelector('.term-screen'));
@@ -230,6 +251,72 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                     )}
                     text={values.source}
                   />
+                  <select
+                    id="viewer-formatter"
+                    className="tui-select tui-select--formatter"
+                    aria-label="Formatter"
+                    value={fastFormatterId}
+                    onChange={(event) => {
+                      const next = event.target.value;
+
+                      if (!FORMATTER_IDS.some((id) => id === next)) {
+                        return;
+                      }
+
+                      const formatterId = next as FormatterId;
+
+                      setFastFormatterId(formatterId);
+                      writeFastFormatterId(formatterId);
+                    }}
+                  >
+                    {FORMATTER_IDS.map((id) => (
+                      <option key={id} value={id}>
+                        {id.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    disabled={!values.source.trim()}
+                    onClick={() => {
+                      const result = formatWithSavedOptions(
+                        formatterRegistry,
+                        fastFormatterId,
+                        values.source,
+                      );
+
+                      if (!result.ok) {
+                        dispatch(setError(result.error));
+
+                        return;
+                      }
+
+                      void setFieldValue('source', result.value);
+                      dispatch(setSource(result.value));
+                      dispatch(clearResult());
+                    }}
+                  >
+                    &quot;Fast&quot;
+                  </button>
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    disabled={!values.source.trim()}
+                    onClick={() => {
+                      navigate(`/formatter/${fastFormatterId}`, {
+                        state: {
+                          formatterHandoff: {
+                            formatterId: fastFormatterId,
+                            source: values.source,
+                            from: { tool: 'viewer', viewerId },
+                          },
+                        },
+                      });
+                    }}
+                  >
+                    &quot;Formatter&quot;
+                  </button>
                   <HistorySelect
                     entries={entries}
                     currentSource={values.source}

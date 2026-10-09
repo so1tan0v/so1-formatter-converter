@@ -10,11 +10,11 @@ import {
   type RefObject,
 } from 'react';
 
-const STORAGE_KEY = 'so1-fmt.window-size.v2';
-const DEFAULT_SCALE = 0.95;
+const STORAGE_KEY = 'so1-fmt.window-size.v3';
+const DEFAULT_SCALE = 1;
 const MIN_SIZE = { width: 520, height: 400 };
-const STAGE_PAD_X = 0.025;
-const STAGE_PAD_Y = 0.025;
+const STAGE_PAD_X = 0.01;
+const STAGE_PAD_Y = 0.01;
 
 export interface WindowSize {
   width: number;
