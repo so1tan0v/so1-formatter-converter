@@ -3,14 +3,37 @@
  */
 export const YANDEX_METRIKA_COUNTER_ID = 113517806;
 
+const ENABLED_FLAGS = new Set(['1', 'true', 'yes', 'on']);
+
+/**
+ * Читает YANDEX_METRIKA_ENABLED. Пустое значение и всё, кроме 1/true/yes/on, выключает счётчик.
+ *
+ * @param raw Значение переменной. Без аргумента берётся из окружения
+ */
+export function isYandexMetrikaEnabled(
+  raw: string | undefined = readYandexMetrikaFlag(),
+): boolean {
+  if (raw === undefined) {
+    return false;
+  }
+
+  return ENABLED_FLAGS.has(raw.trim().toLowerCase());
+}
+
 /**
  * Собирает официальный фрагмент счётчика: загрузчик, init и пиксель для браузеров без JavaScript
  *
  * @param counterId Номер счётчика
+ * @param enabled Подставлять ли счётчик в страницу
  */
 export function yandexMetrikaCounterHtml(
   counterId: number = YANDEX_METRIKA_COUNTER_ID,
+  enabled: boolean = isYandexMetrikaEnabled(),
 ): string {
+  if (!enabled) {
+    return '';
+  }
+
   return `    <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
       (function(m,e,t,r,i,k,a){
@@ -24,4 +47,12 @@ export function yandexMetrikaCounterHtml(
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/${counterId}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->`;
+}
+
+function readYandexMetrikaFlag(): string | undefined {
+  if (typeof process === 'undefined') {
+    return undefined;
+  }
+
+  return process.env.YANDEX_METRIKA_ENABLED;
 }

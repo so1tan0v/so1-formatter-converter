@@ -6,6 +6,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+ARG YANDEX_METRIKA_ENABLED=false
+ENV YANDEX_METRIKA_ENABLED=$YANDEX_METRIKA_ENABLED
+
 RUN npm run build
 
 FROM nginx:1.27-alpine AS runtime

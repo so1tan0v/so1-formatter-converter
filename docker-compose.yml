@@ -3,6 +3,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        YANDEX_METRIKA_ENABLED: ${YANDEX_METRIKA_ENABLED:-false}
     image: so1-formatter-converter-frontend:latest
     container_name: so1-formatter-converter-frontend
     ports:
