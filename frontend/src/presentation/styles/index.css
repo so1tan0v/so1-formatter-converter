@@ -674,6 +674,10 @@ html[data-ascii='false'] .tui-panel__rule {
   accent-color: var(--app-accent);
 }
 
+.tui-check:has(input:disabled) {
+  color: var(--app-fg-muted);
+}
+
 .tui-fetch p {
   margin: 0 0 0.3rem;
 }

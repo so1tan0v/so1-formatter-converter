@@ -110,10 +110,7 @@ function scoreFormat(
     score -= 100;
   }
 
-  if (
-    /\bprewhere\b/i.test(source) &&
-    !hasKeyword(output, 'prewhere')
-  ) {
+  if (/\bprewhere\b/i.test(source) && !hasKeyword(output, 'prewhere')) {
     score -= 100;
   }
 
@@ -129,10 +126,7 @@ function scoreFormat(
     score -= 40;
   }
 
-  if (
-    /\binterval\b/i.test(source) &&
-    !hasKeyword(output, 'interval')
-  ) {
+  if (/\binterval\b/i.test(source) && !hasKeyword(output, 'interval')) {
     score -= 50;
   }
 
@@ -611,7 +605,15 @@ function layoutIfCalls(sql: string, indent: string): string {
 function findLineStartIf(
   source: string,
   from: number,
-): { lineStart: number; paren: number; name: string; nameEnd: number; pad: string } | undefined {
+):
+  | {
+      lineStart: number;
+      paren: number;
+      name: string;
+      nameEnd: number;
+      pad: string;
+    }
+  | undefined {
   let index = from;
   let quote: "'" | '"' | '`' | null = null;
   let lineStart = source.lastIndexOf('\n', from - 1) + 1;
@@ -671,7 +673,10 @@ function findLineStartIf(
 
       index += 1;
 
-      while (index < source.length && /[A-Za-z0-9_]/.test(source[index] ?? '')) {
+      while (
+        index < source.length &&
+        /[A-Za-z0-9_]/.test(source[index] ?? '')
+      ) {
         index += 1;
       }
 
@@ -716,9 +721,7 @@ function renderIf(
   }
 
   const [first = '', ...rest] = parsed.args;
-  const lines = [
-    `${pad}${name}(${first.trim()}${rest.length > 0 ? ',' : ''}`,
-  ];
+  const lines = [`${pad}${name}(${first.trim()}${rest.length > 0 ? ',' : ''}`];
 
   rest.forEach((arg, argIndex) => {
     const comma = argIndex === rest.length - 1 ? '' : ',';

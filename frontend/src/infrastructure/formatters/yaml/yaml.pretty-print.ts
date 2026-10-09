@@ -34,7 +34,8 @@ function formatYamlLines(input: string): string {
 
   while (index < input.length) {
     const newline = input.indexOf('\n', index);
-    const line = newline === -1 ? input.slice(index) : input.slice(index, newline);
+    const line =
+      newline === -1 ? input.slice(index) : input.slice(index, newline);
     const formatted = formatYamlLine(line);
 
     lines.push(formatted);

@@ -1,7 +1,7 @@
 /**
  * Imports from packages
  */
-import { Field } from 'formik';
+import { Field, useFormikContext } from 'formik';
 
 /**
  * Imports from domain
@@ -13,7 +13,7 @@ import {
   OUTPUT_MODES,
   SQL_KEYWORD_CASES,
 } from '@domain/formatter/types';
-import type { FormatterId } from '@domain/formatter/types';
+import type { FormatterId, HtmlTemplating } from '@domain/formatter/types';
 import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
 
 interface FormatterOptionsFieldsProps {
@@ -101,6 +101,9 @@ export function FormatterOptionsFields({
 }
 
 function HtmlExtraFields() {
+  const { values } = useFormikContext<{ templating: HtmlTemplating }>();
+  const templatesOff = values.templating === 'none';
+
   return (
     <>
       <label className="tui-field" htmlFor="wrapAttributes">
@@ -206,7 +209,11 @@ function HtmlExtraFields() {
         <span>Blank line before blocks</span>
       </label>
       <label className="tui-check">
-        <Field type="checkbox" name="indentHandlebars" />
+        <Field
+          type="checkbox"
+          name="indentHandlebars"
+          disabled={templatesOff}
+        />
         <span>Indent Handlebars</span>
       </label>
       <label className="tui-check">

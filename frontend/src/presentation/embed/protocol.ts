@@ -105,9 +105,7 @@ export function parentOriginFromReferrer(referrer: string): string {
   }
 }
 
-function isEmbedRecord(
-  value: unknown,
-): value is Record<string, unknown> & {
+function isEmbedRecord(value: unknown): value is Record<string, unknown> & {
   source: typeof CONVERTER_EMBED_SOURCE;
 } {
   return (

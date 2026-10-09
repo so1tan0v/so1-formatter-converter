@@ -1,12 +1,6 @@
 type FragmentToken = {
   kind:
-    | 'lbrace'
-    | 'rbrace'
-    | 'lbracket'
-    | 'rbracket'
-    | 'colon'
-    | 'comma'
-    | 'value';
+    'lbrace' | 'rbrace' | 'lbracket' | 'rbracket' | 'colon' | 'comma' | 'value';
   raw: string;
 };
 
