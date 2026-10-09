@@ -15,6 +15,19 @@ export interface DifferDraft {
 }
 
 /**
+ * Записывает черновик сравнения, чтобы его подхватил экран Differ
+ *
+ * @param draft Два текста и язык подсветки
+ */
+export function writeDifferDraft(draft: DifferDraft): void {
+  try {
+    window.localStorage.setItem(DIFFER_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    return;
+  }
+}
+
+/**
  * Читает сохранённый черновик сравнения
  *
  * @param raw JSON из localStorage или null, если записи нет

@@ -18,11 +18,18 @@ import { registerJson5Language } from '@presentation/editors/monaco/json5-langua
 import { useMediaQuery } from '@presentation/hooks/useMediaQuery';
 import { useTheme } from '@presentation/theme/useTheme';
 
+interface EditorCaret {
+  line: number;
+  column: number;
+  token: number;
+}
+
 interface CodeEditorProps {
   value: string;
   language: EditorLanguage;
   readOnly?: boolean;
   ariaLabel: string;
+  caret?: EditorCaret | null;
   onChange?: (value: string) => void;
 }
 
@@ -33,6 +40,7 @@ interface CodeEditorProps {
  * @param language Язык подсветки
  * @param readOnly Признак режима только для чтения
  * @param ariaLabel Подпись редактора для вспомогательных технологий
+ * @param caret Куда поставить курсор. Новое значение token повторяет переход
  * @param onChange Обработчик изменения текста
  */
 export function CodeEditor({
@@ -40,6 +48,7 @@ export function CodeEditor({
   language,
   readOnly = false,
   ariaLabel,
+  caret = null,
   onChange,
 }: CodeEditorProps) {
   const { theme } = useTheme();
@@ -57,6 +66,21 @@ export function CodeEditor({
     defineMonacoTheme(monacoRef.current, theme);
     monacoRef.current.editor.setTheme(MONACO_THEME_NAME);
   }, [theme]);
+
+  useEffect(() => {
+    const instance = editorRef.current;
+
+    if (!instance || !caret?.token) {
+      return;
+    }
+
+    const line = Math.max(1, caret.line);
+    const column = Math.max(1, caret.column);
+
+    instance.revealLineInCenter(line);
+    instance.setPosition({ lineNumber: line, column });
+    instance.focus();
+  }, [caret?.column, caret?.line, caret?.token]);
 
   useEffect(() => {
     const host = hostRef.current;

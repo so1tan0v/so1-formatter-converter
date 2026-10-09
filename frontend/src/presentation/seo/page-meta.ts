@@ -7,7 +7,7 @@ export interface PageMeta {
 export const SITE_NAME = 'so1tan0v@fmt';
 
 const SITE_DESCRIPTION =
-  'Format JSON, YAML, SQL and HTML. Diff text and files. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
+  'Format JSON, YAML, SQL, HTML and XML. Diff text and files. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
 
 /**
  * Страницы, которые должны попадать в поиск отдельными результатами
@@ -34,6 +34,11 @@ export const INDEXABLE_PAGES: PageMeta[] = [
     title: 'HTML formatter',
     description:
       'Format HTML with attribute wrapping, indentation and template-aware layout.',
+  },
+  {
+    path: '/formatter/xml',
+    title: 'XML formatter',
+    description: 'Format and compact XML in the browser.',
   },
   {
     path: '/converter/markdown-jira',
@@ -95,7 +100,7 @@ export const INDEXABLE_PAGES: PageMeta[] = [
 
 const FALLBACK_PAGE: PageMeta = {
   path: '/formatter/json',
-  title: 'JSON, YAML, SQL and HTML formatter',
+  title: 'JSON, YAML, SQL, HTML and XML formatter',
   description: SITE_DESCRIPTION,
 };
 

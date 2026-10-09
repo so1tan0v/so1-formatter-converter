@@ -30,6 +30,7 @@ import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
 import { fileNameFor } from '@presentation/files/text-file';
 import { VIEW_SAMPLES } from '@presentation/fixtures/samples';
+import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
 import {
@@ -58,6 +59,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
   const formikRef = useRef<FormikProps<ViewerFormValues>>(null);
+  const rememberNext = useRef(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [overlayHost, setOverlayHost] = useState<Element | null>(null);
   const [openedName, setOpenedName] = useState<string | null>(null);
@@ -110,9 +112,14 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
         command === 'format' ||
         command === 'convert'
       ) {
+        rememberNext.current = true;
         await formikRef.current?.submitForm();
 
         return;
+      }
+
+      if (command === 'copy' && output && !error) {
+        await navigator.clipboard.writeText(output);
       }
 
       if (command === 'sample') {
@@ -140,6 +147,11 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
         void run('sample');
       }
 
+      if (event.key === 'F4') {
+        event.preventDefault();
+        void run('copy');
+      }
+
       if (event.key === 'Escape' && fullscreen) {
         event.preventDefault();
         setFullscreen(false);
@@ -153,7 +165,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
       document.removeEventListener(TUI_COMMAND_EVENT, onCommand);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [dispatch, sample, fullscreen]);
+  }, [dispatch, error, output, sample, fullscreen]);
 
   if (!viewer) {
     return <p className="term-error">Unknown viewer.</p>;
@@ -165,13 +177,25 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
       enableReinitialize
       initialValues={initialValues}
       onSubmit={(values) => {
+        const shouldRemember = rememberNext.current;
+
+        rememberNext.current = false;
         dispatch(setSource(values.source));
+
+        if (!values.source.trim()) {
+          dispatch(clearResult());
+
+          return;
+        }
 
         const result = viewText(viewerRegistry, viewerId, values.source);
 
         if (result.ok) {
           dispatch(setOutput(result.value));
-          remember(values.source, result.value);
+
+          if (shouldRemember) {
+            remember(values.source, result.value);
+          }
 
           return;
         }
@@ -181,6 +205,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
     >
       {({ values, setFieldValue }) => (
         <Form className="formatter-workspace">
+          <DebouncedSubmit signature={values.source} />
           <div className="formatter-workspace__panes">
             <AsciiFrame
               title="Input"
@@ -190,6 +215,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                 <>
                   <FileOpenButton
                     onLoad={(text, fileName) => {
+                      rememberNext.current = true;
                       void setFieldValue('source', text);
                       dispatch(setSource(text));
                       dispatch(clearResult());
@@ -237,6 +263,9 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
               <button
                 type="submit"
                 className="tui-inline-cmd tui-inline-cmd--block"
+                onClick={() => {
+                  rememberNext.current = true;
+                }}
               >
                 &quot;Render&quot;
               </button>

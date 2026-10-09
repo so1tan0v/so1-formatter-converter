@@ -26,6 +26,8 @@ declare module 'js-beautify' {
     inline_custom_elements?: boolean;
     templating?: string[];
     content_unformatted?: string[];
+    inline?: string[];
+    unformatted?: string[];
   }
 
   interface JsBeautify {

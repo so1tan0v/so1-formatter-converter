@@ -6,7 +6,7 @@ import type { IndentStyle } from '@domain/shared/indent';
 /**
  * Идентификаторы доступных форматтеров
  */
-export const FORMATTER_IDS = ['json', 'yaml', 'sql', 'html'] as const;
+export const FORMATTER_IDS = ['json', 'yaml', 'sql', 'html', 'xml'] as const;
 
 export type FormatterId = (typeof FORMATTER_IDS)[number];
 
@@ -32,6 +32,7 @@ export interface JsonFormatOptions {
   dropNulls: boolean;
   escapeUnicode: boolean;
   trailingNewline: boolean;
+  query: string;
 }
 
 export type YamlNullStyle = 'null' | 'tilde' | 'empty';
@@ -110,11 +111,33 @@ export interface HtmlFormatOptions {
   formatPre: boolean;
 }
 
+/**
+ * Режимы вывода XML: многострочный или одна строка
+ */
+export const XML_OUTPUT_MODES = ['pretty', 'compact'] as const;
+
+export type XmlOutputMode = (typeof XML_OUTPUT_MODES)[number];
+
+/**
+ * Как переносить атрибуты XML-элемента
+ */
+export const XML_WRAP_ATTRIBUTES = ['auto', 'force', 'preserve'] as const;
+
+export type XmlWrapAttributes = (typeof XML_WRAP_ATTRIBUTES)[number];
+
+export interface XmlFormatOptions {
+  indent: IndentStyle;
+  mode: XmlOutputMode;
+  wrapAttributes: XmlWrapAttributes;
+  endWithNewline: boolean;
+}
+
 export type FormatterOptionsMap = {
   json: JsonFormatOptions;
   yaml: YamlFormatOptions;
   sql: SqlFormatOptions;
   html: HtmlFormatOptions;
+  xml: XmlFormatOptions;
 };
 
 export type FormatterOptions = FormatterOptionsMap[FormatterId];
@@ -130,6 +153,7 @@ export const DEFAULT_JSON_OPTIONS: JsonFormatOptions = {
   dropNulls: false,
   escapeUnicode: false,
   trailingNewline: false,
+  query: '',
 };
 
 /**
@@ -179,6 +203,16 @@ export const DEFAULT_HTML_OPTIONS: HtmlFormatOptions = {
 };
 
 /**
+ * Настройки XML-форматтера по умолчанию
+ */
+export const DEFAULT_XML_OPTIONS: XmlFormatOptions = {
+  indent: '2-space',
+  mode: 'pretty',
+  wrapAttributes: 'auto',
+  endWithNewline: false,
+};
+
+/**
  * Возвращает настройки форматирования по умолчанию для выбранного типа
  *
  * @param id Идентификатор форматтера
@@ -195,5 +229,7 @@ export function defaultOptionsFor(
       return { ...DEFAULT_SQL_OPTIONS };
     case 'html':
       return { ...DEFAULT_HTML_OPTIONS };
+    case 'xml':
+      return { ...DEFAULT_XML_OPTIONS };
   }
 }

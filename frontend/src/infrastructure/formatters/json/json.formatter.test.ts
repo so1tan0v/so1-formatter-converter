@@ -183,6 +183,20 @@ describe('JsonFormatter', () => {
     }
   });
 
+  it('достает значение по пути и сообщает, если пути нет', () => {
+    const found = formatter.format('{"user":{"name":"Ada"}}', {
+      ...DEFAULT_JSON_OPTIONS,
+      query: 'user.name',
+    });
+    const missing = formatter.format('{"user":{"name":"Ada"}}', {
+      ...DEFAULT_JSON_OPTIONS,
+      query: 'user.missing',
+    });
+
+    expect(found.ok && found.value).toBe('"Ada"');
+    expect(missing.ok).toBe(false);
+  });
+
   it('appends a trailing newline when requested', () => {
     const result = formatter.format('{key: 1}', {
       ...DEFAULT_JSON_OPTIONS,

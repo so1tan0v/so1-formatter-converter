@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react';
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
+import { useAppDispatch } from '@presentation/store/hooks';
+import { setSource } from '@presentation/store/workspace.slice';
 import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
 import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { DiffCodeEditor } from '@presentation/editors/DiffCodeEditor';
@@ -41,9 +43,14 @@ const SAMPLE_DRAFT: DifferDraft = {
  * Сравнение двух текстов или файлов бок о бок
  */
 export function DifferWorkspace() {
+  const dispatch = useAppDispatch();
   const [draft, setDraft] = useState<DifferDraft>(readDraft);
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
   const [collapseUnchanged, setCollapseUnchanged] = useState(false);
+
+  useEffect(() => {
+    dispatch(setSource(draft.original));
+  }, [dispatch, draft.original]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

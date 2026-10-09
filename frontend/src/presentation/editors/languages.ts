@@ -5,7 +5,7 @@ import type { ConverterFormat } from '@domain/converter/types';
 import type { FormatterId } from '@domain/formatter/types';
 
 export type EditorLanguage =
-  'json' | 'json5' | 'yaml' | 'sql' | 'markdown' | 'html' | 'plaintext';
+  'json' | 'json5' | 'yaml' | 'sql' | 'markdown' | 'html' | 'xml' | 'plaintext';
 
 /**
  * Возвращает язык подсветки для поля ввода форматтера
@@ -22,6 +22,8 @@ export function inputLanguageFor(id: FormatterId): EditorLanguage {
       return 'sql';
     case 'html':
       return 'html';
+    case 'xml':
+      return 'xml';
   }
 }
 
@@ -48,6 +50,8 @@ export function outputLanguageFor(
       return 'sql';
     case 'html':
       return 'html';
+    case 'xml':
+      return 'xml';
   }
 }
 

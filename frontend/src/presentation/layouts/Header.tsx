@@ -6,15 +6,21 @@ import { NavLink, useLocation, useMatch } from 'react-router-dom';
 /**
  * Imports from app
  */
-import {
-  converterRegistry,
-  formatterRegistry,
-  viewerRegistry,
-} from '@app/composition';
+import { formatterRegistry, viewerRegistry } from '@app/composition';
+
+/**
+ * Imports from domain
+ */
+import type { ConverterId } from '@domain/converter/types';
 
 /**
  * Imports from presentation
  */
+import {
+  CONVERTER_PAIRS,
+  pairForConverter,
+} from '@presentation/features/converter/pairs';
+import { FORMATTER_GROUPS } from '@presentation/features/formatter/formatter-groups';
 import { useEmbed } from '@presentation/embed/useEmbed';
 
 /**
@@ -86,39 +92,53 @@ export function Header() {
         </div>
         {formatterActive ? (
           <div className="tui-menu__row">
-            {formatterRegistry.list().map((formatter) => (
-              <NavLink
-                key={formatter.id}
-                to={{ pathname: `/formatter/${formatter.id}`, search }}
-                className={({ isActive }) =>
-                  `tui-type ${isActive ? 'is-active' : ''}`.trim()
-                }
-              >
-                {formatter.label}
-              </NavLink>
+            {FORMATTER_GROUPS.map((group) => (
+              <span className="tui-type-group" key={group.label}>
+                <span className="tui-type-group__label">{group.label}</span>
+                {group.ids.map((id) => {
+                  const formatter = formatterRegistry.get(id);
+
+                  if (!formatter) {
+                    return null;
+                  }
+
+                  return (
+                    <NavLink
+                      key={formatter.id}
+                      to={{ pathname: `/formatter/${formatter.id}`, search }}
+                      className={({ isActive }) =>
+                        `tui-type ${isActive ? 'is-active' : ''}`.trim()
+                      }
+                    >
+                      {formatter.label}
+                    </NavLink>
+                  );
+                })}
+              </span>
             ))}
           </div>
         ) : null}
         {converterActive ? (
           <div className="tui-menu__row">
-            {converterRegistry.list().map((converter) =>
-              converter.available ? (
+            {CONVERTER_PAIRS.map((pair) => {
+              const current = converterMatch?.params.type;
+              const active = Boolean(
+                current && pairForConverter(current as ConverterId) === pair,
+              );
+              const target = active && current ? current : pair.forward;
+
+              return (
                 <NavLink
-                  key={converter.id}
-                  to={{ pathname: `/converter/${converter.id}`, search }}
-                  className={({ isActive }) =>
-                    `tui-type ${isActive ? 'is-active' : ''}`.trim()
+                  key={pair.forward}
+                  to={{ pathname: `/converter/${target}`, search }}
+                  className={() =>
+                    `tui-type ${active ? 'is-active' : ''}`.trim()
                   }
                 >
-                  {converter.label}
+                  {pair.label}
                 </NavLink>
-              ) : (
-                <span key={converter.id} className="tui-type is-disabled">
-                  {converter.label}
-                  <span className="tui-soon">soon</span>
-                </span>
-              ),
-            )}
+              );
+            })}
           </div>
         ) : null}
         {viewerActive ? (

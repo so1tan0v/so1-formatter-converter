@@ -271,6 +271,10 @@ html[data-window='true'] .term-window__chrome {
   text-decoration: none;
 }
 
+.tui-inline-cmd.is-active {
+  color: var(--app-accent);
+}
+
 .tui-inline-cmd:disabled:hover,
 .tui-inline-cmd:disabled:focus {
   color: var(--app-fg-muted);
@@ -292,6 +296,19 @@ html[data-window='true'] .term-window__chrome {
   display: flex;
   flex-wrap: wrap;
   gap: 0.2rem;
+}
+
+.tui-type-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-right: 0.75rem;
+}
+
+.tui-type-group__label {
+  color: var(--app-fg-muted);
+  padding: 0.15rem 0.35rem;
+  font-size: 0.85em;
 }
 
 .tui-tab,
@@ -399,6 +416,24 @@ html[data-window='true'] .term-window__chrome {
 .tui-btn:hover .tui-fn__label,
 .tui-fn:hover .tui-fn__label {
   color: var(--app-accent);
+}
+
+.tui-fn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tui-fn:disabled:hover .tui-fn__key {
+  background: var(--app-label);
+}
+
+.tui-fn:disabled:hover .tui-fn__label {
+  color: var(--app-fg);
+}
+
+.tui-fn--meta {
+  margin-left: auto;
+  cursor: default;
 }
 
 .tui-statusbar {
@@ -614,6 +649,46 @@ html[data-ascii='false'] .tui-panel__rule {
   flex-wrap: wrap;
   gap: 0.45rem 0.9rem;
   align-items: center;
+}
+
+.tui-option-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tui-option-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  align-items: center;
+}
+
+.tui-option-group__title {
+  min-width: 4.5rem;
+  color: var(--app-fg-muted);
+}
+
+.tui-input {
+  width: 12rem;
+  background: transparent;
+  color: var(--app-accent);
+  border: 0;
+  border-bottom: 1px solid var(--app-fg-muted);
+  border-radius: 0;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.1rem 0.1rem;
+  min-height: 32px;
+}
+
+.tui-input:focus {
+  outline: none;
+  border-bottom-color: var(--app-accent);
+}
+
+.tui-input::placeholder {
+  color: var(--app-fg-muted);
 }
 
 .tui-field {

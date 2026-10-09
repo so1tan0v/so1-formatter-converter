@@ -55,6 +55,7 @@ having SOMEKEY = 1 and key = 1`,
 const ready = true;
 if (ready) { console.log("ok"); }
 </script></body></html>`,
+  xml: `<?xml version="1.0" encoding="UTF-8"?><release ready="true"><title>Notes</title><items><item id="1">Ship XML</item><item id="2"/></items></release>`,
 };
 
 /**

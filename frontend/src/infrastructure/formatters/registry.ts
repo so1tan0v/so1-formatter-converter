@@ -15,6 +15,7 @@ import type { FormatterId } from '@domain/formatter/types';
 import { HtmlFormatter } from './html/html.formatter';
 import { JsonFormatter } from './json/json.formatter';
 import { SqlFormatter } from './sql/sql.formatter';
+import { XmlFormatter } from './xml/xml.formatter';
 import { YamlFormatter } from './yaml/yaml.formatter';
 
 /**
@@ -26,6 +27,7 @@ export function createFormatterRegistry(): FormatterRegistry {
     new YamlFormatter(),
     new SqlFormatter(),
     new HtmlFormatter(),
+    new XmlFormatter(),
   ];
   const byId = new Map(
     formatters.map((formatter) => [formatter.id, formatter]),

@@ -4,12 +4,13 @@
 import type { TextFormatter } from '@domain/formatter/ports';
 import type { JsonFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
-import { failure, success } from '@domain/shared/result';
+import { failure, success, toErrorMessage } from '@domain/shared/result';
 import type { Result } from '@domain/shared/result';
 
 /**
  * Imports from relative
  */
+import { selectJsonPath } from './json.path';
 import { parseLooseJson } from './json.parser';
 import { prettyPrintJsonFragment } from './json.pretty-print';
 import { applyJsonTextOptions, serializeJson } from './json.serialize';
@@ -40,9 +41,20 @@ export class JsonFormatter implements TextFormatter<'json'> {
 
     try {
       const value = parseLooseJson(source);
+      const selected = options.query.trim()
+        ? selectJsonPath(value, options.query)
+        : success(value);
 
-      return success(serializeJson(value, options));
-    } catch {
+      if (!selected.ok) {
+        return selected;
+      }
+
+      return success(serializeJson(selected.value, options));
+    } catch (error) {
+      if (options.query.trim()) {
+        return failure(toErrorMessage(error));
+      }
+
       const indent = indentString(options.indent);
 
       let output = prettyPrintJsonFragment(

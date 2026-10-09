@@ -2,6 +2,7 @@
  * Imports from packages
  */
 import { Field, useFormikContext } from 'formik';
+import type { ReactNode } from 'react';
 
 /**
  * Imports from domain
@@ -13,12 +14,15 @@ import {
   JSON_KEY_CASES,
   OUTPUT_MODES,
   SQL_KEYWORD_CASES,
+  XML_OUTPUT_MODES,
+  XML_WRAP_ATTRIBUTES,
 } from '@domain/formatter/types';
 import type { FormatterId, HtmlTemplating } from '@domain/formatter/types';
 import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
 
 interface FormatterOptionsFieldsProps {
   formatterId: FormatterId;
+  advanced: boolean;
 }
 
 const KEYWORD_CASE_LABELS: Record<(typeof SQL_KEYWORD_CASES)[number], string> =
@@ -67,68 +71,170 @@ const SCRIPT_INDENT_LABELS: Record<
  * Поля настроек форматирования для выбранного типа
  *
  * @param formatterId Идентификатор активного форматтера
+ * @param advanced Показывать редкие настройки
  */
 export function FormatterOptionsFields({
   formatterId,
+  advanced,
 }: FormatterOptionsFieldsProps) {
   return (
-    <div className="tui-fields">
-      <label className="tui-field" htmlFor="indent">
-        <span className="tui-field__name">Indent</span>
-        <Field as="select" id="indent" name="indent" className="tui-select">
-          {INDENT_STYLES.map((style) => (
-            <option key={style} value={style}>
-              {INDENT_STYLE_LABELS[style]}
-            </option>
-          ))}
-        </Field>
-      </label>
-
-      {formatterId === 'json' || formatterId === 'yaml' ? (
-        <label className="tui-field" htmlFor="mode">
-          <span className="tui-field__name">Style</span>
-          <Field as="select" id="mode" name="mode" className="tui-select">
-            {OUTPUT_MODES.map((mode) => (
-              <option key={mode} value={mode}>
-                {MODE_LABELS[mode]}
+    <div className="tui-option-groups">
+      <OptionGroup title="Layout">
+        <label className="tui-field" htmlFor="indent">
+          <span className="tui-field__name">Indent</span>
+          <Field as="select" id="indent" name="indent" className="tui-select">
+            {INDENT_STYLES.map((style) => (
+              <option key={style} value={style}>
+                {INDENT_STYLE_LABELS[style]}
               </option>
             ))}
           </Field>
         </label>
+        {formatterId === 'json' ||
+        formatterId === 'yaml' ||
+        formatterId === 'xml' ? (
+          <label className="tui-field" htmlFor="mode">
+            <span className="tui-field__name">Style</span>
+            <Field as="select" id="mode" name="mode" className="tui-select">
+              {(formatterId === 'xml' ? XML_OUTPUT_MODES : OUTPUT_MODES).map(
+                (mode) => (
+                  <option key={mode} value={mode}>
+                    {MODE_LABELS[mode]}
+                  </option>
+                ),
+              )}
+            </Field>
+          </label>
+        ) : null}
+      </OptionGroup>
+
+      {formatterId === 'json' || formatterId === 'yaml' ? (
+        <OptionGroup title="Keys">
+          <KeyCaseField />
+          {formatterId === 'json' ? (
+            <label className="tui-field" htmlFor="query">
+              <span className="tui-field__name">Path</span>
+              <Field
+                id="query"
+                name="query"
+                className="tui-input"
+                placeholder="user.name"
+                spellCheck={false}
+              />
+            </label>
+          ) : null}
+        </OptionGroup>
       ) : null}
 
-      {formatterId === 'json' ? <JsonExtraFields /> : null}
+      {formatterId === 'sql' ? (
+        <OptionGroup title="SQL">
+          <SqlExtraFields />
+        </OptionGroup>
+      ) : null}
 
-      {formatterId === 'yaml' ? <YamlExtraFields /> : null}
+      {formatterId === 'html' ? (
+        <OptionGroup title="Markup">
+          <HtmlAttributeField />
+        </OptionGroup>
+      ) : null}
 
-      {formatterId === 'sql' ? <SqlExtraFields /> : null}
+      {formatterId === 'xml' ? (
+        <OptionGroup title="Markup">
+          <XmlAttributeField />
+        </OptionGroup>
+      ) : null}
 
-      {formatterId === 'html' ? <HtmlExtraFields /> : null}
+      {advanced && formatterId === 'json' ? (
+        <OptionGroup title="More">
+          <JsonAdvancedFields />
+        </OptionGroup>
+      ) : null}
+
+      {advanced && formatterId === 'yaml' ? (
+        <OptionGroup title="More">
+          <YamlAdvancedFields />
+        </OptionGroup>
+      ) : null}
+
+      {advanced && formatterId === 'html' ? (
+        <OptionGroup title="More">
+          <HtmlAdvancedFields />
+        </OptionGroup>
+      ) : null}
+
+      {advanced && formatterId === 'xml' ? (
+        <OptionGroup title="More">
+          <label className="tui-check">
+            <Field type="checkbox" name="endWithNewline" />
+            <span>End with newline</span>
+          </label>
+        </OptionGroup>
+      ) : null}
     </div>
   );
 }
 
-function HtmlExtraFields() {
+function OptionGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="tui-option-group">
+      <span className="tui-option-group__title">{title}</span>
+      {children}
+    </div>
+  );
+}
+
+function XmlAttributeField() {
+  return (
+    <label className="tui-field" htmlFor="wrapAttributes">
+      <span className="tui-field__name">Attributes</span>
+      <Field
+        as="select"
+        id="wrapAttributes"
+        name="wrapAttributes"
+        className="tui-select"
+      >
+        {XML_WRAP_ATTRIBUTES.map((value) => (
+          <option key={value} value={value}>
+            {WRAP_ATTRIBUTE_LABELS[value]}
+          </option>
+        ))}
+      </Field>
+    </label>
+  );
+}
+
+function HtmlAttributeField() {
+  return (
+    <label className="tui-field" htmlFor="wrapAttributes">
+      <span className="tui-field__name">Attributes</span>
+      <Field
+        as="select"
+        id="wrapAttributes"
+        name="wrapAttributes"
+        className="tui-select"
+      >
+        {HTML_WRAP_ATTRIBUTES.map((value) => (
+          <option key={value} value={value}>
+            {WRAP_ATTRIBUTE_LABELS[value]}
+          </option>
+        ))}
+      </Field>
+    </label>
+  );
+}
+
+function HtmlAdvancedFields() {
   const { values } = useFormikContext<{ templating: HtmlTemplating }>();
   const templatesOff = values.templating === 'none';
 
   return (
     <>
-      <label className="tui-field" htmlFor="wrapAttributes">
-        <span className="tui-field__name">Attributes</span>
-        <Field
-          as="select"
-          id="wrapAttributes"
-          name="wrapAttributes"
-          className="tui-select"
-        >
-          {HTML_WRAP_ATTRIBUTES.map((value) => (
-            <option key={value} value={value}>
-              {WRAP_ATTRIBUTE_LABELS[value]}
-            </option>
-          ))}
-        </Field>
-      </label>
       <label className="tui-field" htmlFor="wrapAttributesMin">
         <span className="tui-field__name">Min attributes</span>
         <Field
@@ -271,10 +377,9 @@ function KeyCaseField() {
   );
 }
 
-function JsonExtraFields() {
+function JsonAdvancedFields() {
   return (
     <>
-      <KeyCaseField />
       <label className="tui-check">
         <Field type="checkbox" name="sortKeys" />
         <span>Sort keys</span>
@@ -295,10 +400,9 @@ function JsonExtraFields() {
   );
 }
 
-function YamlExtraFields() {
+function YamlAdvancedFields() {
   return (
     <>
-      <KeyCaseField />
       <label className="tui-field" htmlFor="quoting">
         <span className="tui-field__name">Quotes</span>
         <Field as="select" id="quoting" name="quoting" className="tui-select">
