@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 /**
  * Imports from presentation
  */
+import { codeGlanceMinimap } from '@presentation/editors/codeglance';
 import type { EditorLanguage } from '@presentation/editors/languages';
 import {
   defineMonacoTheme,
@@ -46,6 +47,7 @@ export function CodeEditor({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const compact = useMediaQuery('(max-width: 991px), (pointer: coarse)');
+  const showCodeGlance = useMediaQuery('(min-width: 992px)');
 
   useEffect(() => {
     if (!monacoRef.current) {
@@ -102,7 +104,7 @@ export function CodeEditor({
           fontFamily: theme.tokens.fontMono,
           fontSize: compact ? 16 : 13,
           lineHeight: compact ? 22 : 20,
-          minimap: { enabled: false },
+          minimap: codeGlanceMinimap(showCodeGlance),
           wordWrap: 'on',
           wrappingIndent: 'indent',
           automaticLayout: false,

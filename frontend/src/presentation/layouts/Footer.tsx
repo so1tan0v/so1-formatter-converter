@@ -10,13 +10,14 @@ import { useEmbed } from '@presentation/embed/useEmbed';
 import { dispatchTuiCommand } from '@presentation/tui/commands';
 
 /**
- * Нижняя панель с действиями Format, Convert и Copy
+ * Нижняя панель с действиями Format, Convert, Diff и Copy
  */
 export function Footer() {
   const location = useLocation();
   const { isEmbed } = useEmbed();
   const converterActive = location.pathname.startsWith('/converter');
   const viewerActive = location.pathname.startsWith('/viewer');
+  const differActive = location.pathname.startsWith('/differ');
   const action = viewerActive
     ? 'render'
     : converterActive
@@ -36,23 +37,40 @@ export function Footer() {
   return (
     <footer className="tui-footer">
       <p className="tui-help" id="tui-help">
-        Click{' '}
-        <button
-          type="button"
-          className="tui-inline-cmd"
-          onClick={() => dispatchTuiCommand(action)}
-        >
-          &quot;{actionLabel}&quot;
-        </button>{' '}
-        to {actionVerb}. Click{' '}
-        <button
-          type="button"
-          className="tui-inline-cmd"
-          onClick={() => dispatchTuiCommand('sample')}
-        >
-          &quot;Example&quot;
-        </button>{' '}
-        for a sample.
+        {differActive ? (
+          <>
+            Paste text or click &quot;Open&quot; to load a file. Both sides
+            scroll together. Click{' '}
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              onClick={() => dispatchTuiCommand('sample')}
+            >
+              &quot;Example&quot;
+            </button>{' '}
+            for a sample.
+          </>
+        ) : (
+          <>
+            Click{' '}
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              onClick={() => dispatchTuiCommand(action)}
+            >
+              &quot;{actionLabel}&quot;
+            </button>{' '}
+            to {actionVerb}. Click{' '}
+            <button
+              type="button"
+              className="tui-inline-cmd"
+              onClick={() => dispatchTuiCommand('sample')}
+            >
+              &quot;Example&quot;
+            </button>{' '}
+            for a sample.
+          </>
+        )}
         {isEmbed ? ' Copy with F4. Exit with Ctrl+C or ⌘C.' : null}
       </p>
       <div className="tui-statusbar">

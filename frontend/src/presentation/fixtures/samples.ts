@@ -149,3 +149,76 @@ const ready = true;
 |Render|*ok*|
 `,
 };
+
+const DIFFER_NOTE_COUNT = 28;
+
+/**
+ * Собирает JSON-образец для сравнения двух версий одного документа
+ *
+ * @param version Номер версии в документе
+ * @param features Список возможностей
+ * @param notes Список заметок, достаточно длинный, чтобы панель прокручивалась
+ */
+function differJsonSample(
+  version: number,
+  features: string[],
+  notes: string[],
+): string {
+  const featureLines = features.map((feature, index) => {
+    const comma = index === features.length - 1 ? '' : ',';
+
+    return `    "${feature}"${comma}`;
+  });
+  const noteLines = notes.map((note, index) => {
+    const comma = index === notes.length - 1 ? '' : ',';
+
+    return `    "${note}"${comma}`;
+  });
+
+  return `{
+  "service": "tonus",
+  "version": ${version},
+  "features": [
+${featureLines.join('\n')}
+  ],
+  "notes": [
+${noteLines.join('\n')}
+  ]
+}
+`;
+}
+
+const DIFFER_NOTES = Array.from(
+  { length: DIFFER_NOTE_COUNT },
+  (_, index) => `note ${index + 1}`,
+);
+
+const DIFFER_NOTES_MODIFIED = DIFFER_NOTES.map((note, index) => {
+  if (index === 14) {
+    return 'note 15 revised';
+  }
+
+  if (index === DIFFER_NOTE_COUNT - 1) {
+    return 'ready to diff';
+  }
+
+  return note;
+});
+
+/**
+ * Левая сторона примера Differ
+ */
+export const DIFFER_SAMPLE_ORIGINAL = differJsonSample(
+  1,
+  ['format', 'convert', 'preview'],
+  DIFFER_NOTES,
+);
+
+/**
+ * Правая сторона примера Differ
+ */
+export const DIFFER_SAMPLE_MODIFIED = differJsonSample(
+  2,
+  ['format', 'convert', 'preview', 'diff'],
+  DIFFER_NOTES_MODIFIED,
+);

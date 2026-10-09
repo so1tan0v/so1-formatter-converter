@@ -7,7 +7,7 @@ export interface PageMeta {
 export const SITE_NAME = 'so1tan0v@fmt';
 
 const SITE_DESCRIPTION =
-  'Format JSON, YAML, SQL and HTML. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
+  'Format JSON, YAML, SQL and HTML. Diff text and files. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser.';
 
 /**
  * Страницы, которые должны попадать в поиск отдельными результатами
@@ -84,6 +84,12 @@ export const INDEXABLE_PAGES: PageMeta[] = [
     path: '/viewer/jira',
     title: 'Jira viewer',
     description: 'Preview Jira wiki markup as HTML.',
+  },
+  {
+    path: '/differ',
+    title: 'Text diff',
+    description:
+      'Compare two texts or files side by side, with synchronized scrolling.',
   },
 ];
 

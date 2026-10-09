@@ -18,7 +18,7 @@ import {
 import { useEmbed } from '@presentation/embed/useEmbed';
 
 /**
- * Верхняя панель с разделами Formatter, Converter и Viewer
+ * Верхняя панель с разделами Formatter, Converter, Viewer и Differ
  */
 export function Header() {
   const location = useLocation();
@@ -29,11 +29,14 @@ export function Header() {
   const formatterActive = location.pathname.startsWith('/formatter');
   const converterActive = location.pathname.startsWith('/converter');
   const viewerActive = location.pathname.startsWith('/viewer');
+  const differActive = location.pathname.startsWith('/differ');
   const command = formatterActive
     ? `formatter ${formatterMatch?.params.type ?? 'json'}`
     : converterActive
       ? `converter ${converterMatch?.params.type ?? 'markdown-jira'}`
-      : `viewer ${viewerMatch?.params.type ?? 'markdown'}`;
+      : viewerActive
+        ? `viewer ${viewerMatch?.params.type ?? 'markdown'}`
+        : 'differ';
   const search = location.search;
 
   return (
@@ -71,6 +74,14 @@ export function Header() {
             }
           >
             Viewer
+          </NavLink>
+          <NavLink
+            to={{ pathname: '/differ', search }}
+            className={() =>
+              `tui-tab ${differActive ? 'is-active' : ''}`.trim()
+            }
+          >
+            Differ
           </NavLink>
         </div>
         {formatterActive ? (

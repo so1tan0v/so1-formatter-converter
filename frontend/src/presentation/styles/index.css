@@ -723,6 +723,77 @@ html[data-ascii='false'] .tui-panel__rule {
   background: var(--app-bg);
 }
 
+.differ-workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.differ-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.15rem 0.2rem 0;
+}
+
+.differ-side {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.differ-side__role {
+  color: var(--app-label);
+  flex-shrink: 0;
+}
+
+.differ-side__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--app-accent);
+}
+
+.differ-file-input {
+  display: none;
+}
+
+.diff-editor {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 220px;
+  height: 32vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-bg);
+}
+
+.diff-editor__host {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.diff-editor .code-editor__loading {
+  position: absolute;
+  inset: 0;
+}
+
+.diff-editor.is-dropping {
+  outline: 1px dashed var(--app-accent);
+  outline-offset: -1px;
+}
+
+.diff-editor .monaco-editor,
+.diff-editor .monaco-editor .overflow-guard {
+  background: var(--app-bg);
+}
+
 .markdown-preview {
   flex: 1;
   min-width: 0;
@@ -948,7 +1019,8 @@ html[data-ascii='false'] .tui-panel__rule {
   }
 
   .code-editor,
-  .markdown-preview {
+  .markdown-preview,
+  .diff-editor {
     height: auto;
     min-height: 0;
   }

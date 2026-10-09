@@ -43,6 +43,7 @@ import {
   outputLanguageFor,
 } from '@presentation/editors/languages';
 import { FormatterOptionsFields } from '@presentation/features/formatter/FormatterOptionsFields';
+import { useFormattedInputSync } from '@presentation/features/formatter/useFormattedInputSync';
 import { SAMPLE_SOURCES } from '@presentation/fixtures/samples';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
@@ -185,6 +186,16 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
     };
   }, [dispatch, formatterId, output]);
 
+  const syncFormattedEdit = useFormattedInputSync(
+    error ?? output,
+    Boolean(error),
+    (next) => {
+      void formikRef.current?.setFieldValue('source', next);
+      dispatch(setSource(next));
+      dispatch(setOutput(next));
+    },
+  );
+
   if (!formatter) {
     return <p className="term-error">Unknown formatter.</p>;
   }
@@ -270,7 +281,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
             </div>
 
             <AsciiFrame
-              title={error ? 'Error' : 'Output'}
+              title={error ? 'Error' : 'Formatted'}
               fill
               actions={
                 <button
@@ -287,12 +298,14 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                 <CodeEditor
                   value={error ?? output}
                   language={outputLanguageFor(formatterId, Boolean(error))}
-                  ariaLabel={`${formatter.label} output`}
-                  readOnly
+                  ariaLabel={`${formatter.label} formatted`}
+                  readOnly={Boolean(error)}
+                  onChange={syncFormattedEdit}
                 />
                 {!output && !error ? (
                   <p className="formatter-workspace__empty">
                     Formatted text will appear here after you press Format.
+                    Edits in this pane update Input.
                   </p>
                 ) : null}
               </div>
