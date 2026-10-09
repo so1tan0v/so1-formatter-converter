@@ -2,7 +2,7 @@
  * Imports from packages
  */
 import { Form, Formik, type FormikProps } from 'formik';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Imports from app
@@ -17,15 +17,18 @@ import { convertText } from '@application/convert-text';
 /**
  * Imports from domain
  */
-import type { ConverterId } from '@domain/converter/types';
+import type { ConverterFormat, ConverterId } from '@domain/converter/types';
 
 /**
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
+import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
+import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
 import { languageForFormat } from '@presentation/editors/languages';
+import { fileNameFor } from '@presentation/files/text-file';
 import { CONVERT_SAMPLES } from '@presentation/fixtures/samples';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
@@ -59,6 +62,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
   const formikRef = useRef<FormikProps<ConverterFormValues>>(null);
+  const [openedName, setOpenedName] = useState<string | null>(null);
   const converter = converterRegistry.get(converterId);
   const sample = CONVERT_SAMPLES[converterId] ?? '';
   const historyScope = `converter:${converterId}` as const;
@@ -75,6 +79,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
 
     dispatch(clearResult());
     dispatch(setSource(stored?.source ?? sample));
+    setOpenedName(null);
 
     if (stored?.output) {
       dispatch(setOutput(stored.output));
@@ -92,6 +97,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
       if (command === 'sample') {
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
+        setOpenedName(null);
 
         return;
       }
@@ -173,20 +179,39 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
               hint={converter.sourceLabel}
               fill
               actions={
-                <HistorySelect
-                  entries={entries}
-                  currentSource={values.source}
-                  onSelect={(entry) => {
-                    void setFieldValue('source', entry.source);
-                    dispatch(setSource(entry.source));
-
-                    if (entry.output) {
-                      dispatch(setOutput(entry.output));
-                    } else {
+                <>
+                  <FileOpenButton
+                    onLoad={(text, fileName) => {
+                      void setFieldValue('source', text);
+                      dispatch(setSource(text));
                       dispatch(clearResult());
-                    }
-                  }}
-                />
+                      setOpenedName(fileName);
+                    }}
+                  />
+                  <FileDownloadButton
+                    fileName={fileNameFor(
+                      openedName,
+                      'input',
+                      extensionFor(converter.sourceFormat),
+                    )}
+                    text={values.source}
+                  />
+                  <HistorySelect
+                    entries={entries}
+                    currentSource={values.source}
+                    onSelect={(entry) => {
+                      void setFieldValue('source', entry.source);
+                      dispatch(setSource(entry.source));
+                      setOpenedName(null);
+
+                      if (entry.output) {
+                        dispatch(setOutput(entry.output));
+                      } else {
+                        dispatch(clearResult());
+                      }
+                    }}
+                  />
+                </>
               }
             >
               <CodeEditor
@@ -220,14 +245,25 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
               hint={error ? undefined : converter.targetLabel}
               fill
               actions={
-                <button
-                  type="button"
-                  className="tui-inline-cmd"
-                  disabled={!output || Boolean(error)}
-                  onClick={() => dispatchTuiCommand('copy')}
-                >
-                  &quot;Copy&quot;
-                </button>
+                <>
+                  <FileDownloadButton
+                    fileName={fileNameFor(
+                      openedName,
+                      'output',
+                      extensionFor(converter.targetFormat),
+                    )}
+                    text={output}
+                    disabled={Boolean(error)}
+                  />
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    disabled={!output || Boolean(error)}
+                    onClick={() => dispatchTuiCommand('copy')}
+                  >
+                    &quot;Copy&quot;
+                  </button>
+                </>
               }
             >
               <div className="formatter-workspace__output">
@@ -249,4 +285,15 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
       )}
     </Formik>
   );
+}
+
+function extensionFor(format: ConverterFormat): string {
+  switch (format) {
+    case 'markdown':
+      return 'md';
+    case 'plaintext':
+      return 'txt';
+    default:
+      return format;
+  }
 }

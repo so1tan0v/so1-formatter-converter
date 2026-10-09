@@ -6,8 +6,13 @@ import YAML from 'js-yaml';
 /**
  * Imports from domain
  */
-import type { YamlFormatOptions } from '@domain/formatter/types';
+import type { JsonKeyCase, YamlFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
+
+/**
+ * Imports from infrastructure
+ */
+import { convertJsonKey } from '@infrastructure/formatters/json/json.keys';
 
 /**
  * Сериализует значение в YAML-строку по выбранным настройкам
@@ -19,7 +24,7 @@ export function serializeYaml(
   value: unknown,
   options: YamlFormatOptions,
 ): string {
-  const dumped = YAML.dump(value, {
+  const dumped = YAML.dump(renameYamlKeys(value, options.keyCase), {
     indent:
       indentString(options.indent) === '\t'
         ? 2
@@ -46,6 +51,28 @@ export function serializeYaml(
   }
 
   return withDocument;
+}
+
+function renameYamlKeys(value: unknown, keyCase: JsonKeyCase): unknown {
+  if (keyCase === 'as-is' || value === null || typeof value !== 'object') {
+    return value;
+  }
+
+  if (value instanceof Date || value instanceof Uint8Array) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => renameYamlKeys(item, keyCase));
+  }
+
+  const next: Record<string, unknown> = {};
+
+  for (const [key, item] of Object.entries(value)) {
+    next[convertJsonKey(key, keyCase)] = renameYamlKeys(item, keyCase);
+  }
+
+  return next;
 }
 
 function nullStyleToYaml(

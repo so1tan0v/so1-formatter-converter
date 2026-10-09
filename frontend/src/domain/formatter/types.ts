@@ -17,9 +17,17 @@ export const OUTPUT_MODES = ['pretty', 'compact', 'escaped'] as const;
 
 export type OutputMode = (typeof OUTPUT_MODES)[number];
 
+/**
+ * Регистр ключей JSON и YAML: как в исходнике, snake_case, camelCase или CamelCase
+ */
+export const JSON_KEY_CASES = ['as-is', 'snake', 'camel', 'pascal'] as const;
+
+export type JsonKeyCase = (typeof JSON_KEY_CASES)[number];
+
 export interface JsonFormatOptions {
   indent: IndentStyle;
   mode: OutputMode;
+  keyCase: JsonKeyCase;
   sortKeys: boolean;
   dropNulls: boolean;
   escapeUnicode: boolean;
@@ -32,6 +40,7 @@ export type YamlQuoting = 'auto' | 'single' | 'double';
 export interface YamlFormatOptions {
   indent: IndentStyle;
   mode: OutputMode;
+  keyCase: JsonKeyCase;
   sortKeys: boolean;
   quoting: YamlQuoting;
   forceQuotes: boolean;
@@ -116,6 +125,7 @@ export type FormatterOptions = FormatterOptionsMap[FormatterId];
 export const DEFAULT_JSON_OPTIONS: JsonFormatOptions = {
   indent: '2-space',
   mode: 'pretty',
+  keyCase: 'as-is',
   sortKeys: false,
   dropNulls: false,
   escapeUnicode: false,
@@ -128,6 +138,7 @@ export const DEFAULT_JSON_OPTIONS: JsonFormatOptions = {
 export const DEFAULT_YAML_OPTIONS: YamlFormatOptions = {
   indent: '2-space',
   mode: 'pretty',
+  keyCase: 'as-is',
   sortKeys: false,
   quoting: 'auto',
   forceQuotes: false,

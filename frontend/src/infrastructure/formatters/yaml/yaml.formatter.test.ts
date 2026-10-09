@@ -69,6 +69,32 @@ describe('YamlFormatter', () => {
     }
   });
 
+  it('переводит ключи из snake_case в CamelCase и обратно', () => {
+    const toCamel = formatter.format(
+      'user_name: Ada\nprofile:\n  api_key: 1\n',
+      {
+        ...DEFAULT_YAML_OPTIONS,
+        keyCase: 'camel',
+      },
+    );
+    const toPascal = formatter.format('user_name: Ada\n', {
+      ...DEFAULT_YAML_OPTIONS,
+      keyCase: 'pascal',
+    });
+    const toSnake = formatter.format('userName: Ada\nHTMLParser: true\n', {
+      ...DEFAULT_YAML_OPTIONS,
+      keyCase: 'snake',
+    });
+
+    expect(toCamel.ok && toCamel.value).toBe(
+      'userName: Ada\nprofile:\n  apiKey: 1',
+    );
+    expect(toPascal.ok && toPascal.value).toBe('UserName: Ada');
+    expect(toSnake.ok && toSnake.value).toBe(
+      'user_name: Ada\nhtml_parser: true',
+    );
+  });
+
   it('can sort keys and add a document start marker', () => {
     const result = formatter.format('b: 2\na: 1', {
       ...DEFAULT_YAML_OPTIONS,

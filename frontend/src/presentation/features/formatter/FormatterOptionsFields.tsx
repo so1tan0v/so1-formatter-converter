@@ -10,6 +10,7 @@ import {
   HTML_SCRIPT_INDENTS,
   HTML_TEMPLATING,
   HTML_WRAP_ATTRIBUTES,
+  JSON_KEY_CASES,
   OUTPUT_MODES,
   SQL_KEYWORD_CASES,
 } from '@domain/formatter/types';
@@ -26,6 +27,13 @@ const KEYWORD_CASE_LABELS: Record<(typeof SQL_KEYWORD_CASES)[number], string> =
     lower: 'Lower',
     preserve: 'As is',
   };
+
+const JSON_KEY_CASE_LABELS: Record<(typeof JSON_KEY_CASES)[number], string> = {
+  'as-is': 'As is',
+  snake: 'snake_case',
+  camel: 'camelCase',
+  pascal: 'CamelCase',
+};
 
 const MODE_LABELS: Record<(typeof OUTPUT_MODES)[number], string> = {
   pretty: 'Pretty',
@@ -248,9 +256,25 @@ function SqlExtraFields() {
   );
 }
 
+function KeyCaseField() {
+  return (
+    <label className="tui-field" htmlFor="keyCase">
+      <span className="tui-field__name">Keys</span>
+      <Field as="select" id="keyCase" name="keyCase" className="tui-select">
+        {JSON_KEY_CASES.map((value) => (
+          <option key={value} value={value}>
+            {JSON_KEY_CASE_LABELS[value]}
+          </option>
+        ))}
+      </Field>
+    </label>
+  );
+}
+
 function JsonExtraFields() {
   return (
     <>
+      <KeyCaseField />
       <label className="tui-check">
         <Field type="checkbox" name="sortKeys" />
         <span>Sort keys</span>
@@ -274,6 +298,7 @@ function JsonExtraFields() {
 function YamlExtraFields() {
   return (
     <>
+      <KeyCaseField />
       <label className="tui-field" htmlFor="quoting">
         <span className="tui-field__name">Quotes</span>
         <Field as="select" id="quoting" name="quoting" className="tui-select">

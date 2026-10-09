@@ -5,6 +5,11 @@ import type { JsonFormatOptions } from '@domain/formatter/types';
 import { indentString } from '@domain/shared/indent';
 
 /**
+ * Imports from relative
+ */
+import { convertJsonKey } from './json.keys';
+
+/**
  * Сериализует значение в JSON-строку по выбранным настройкам
  *
  * @param value Разобранное JSON-значение
@@ -72,17 +77,25 @@ function prepareJson(value: unknown, options: JsonFormatOptions): unknown {
       ? entries.filter(([, item]) => item !== null)
       : entries;
 
-    if (options.sortKeys) {
-      kept.sort(([left], [right]) => left.localeCompare(right));
-    }
-
     const next: Record<string, unknown> = {};
 
     for (const [key, item] of kept) {
-      next[key] = prepareJson(item, options);
+      next[convertJsonKey(key, options.keyCase)] = prepareJson(item, options);
     }
 
-    return next;
+    if (!options.sortKeys) {
+      return next;
+    }
+
+    const sorted: Record<string, unknown> = {};
+
+    for (const key of Object.keys(next).sort((left, right) =>
+      left.localeCompare(right),
+    )) {
+      sorted[key] = next[key];
+    }
+
+    return sorted;
   }
 
   return value;

@@ -96,6 +96,35 @@ describe('JsonFormatter', () => {
     }
   });
 
+  it('переводит ключи из snake_case в CamelCase и обратно', () => {
+    const toCamel = formatter.format(
+      '{user_name: "Ada", profile: {api_key: 1}}',
+      {
+        ...DEFAULT_JSON_OPTIONS,
+        mode: 'compact',
+        keyCase: 'camel',
+      },
+    );
+    const toPascal = formatter.format('{user_name: "Ada"}', {
+      ...DEFAULT_JSON_OPTIONS,
+      mode: 'compact',
+      keyCase: 'pascal',
+    });
+    const toSnake = formatter.format('{userName: "Ada", HTMLParser: true}', {
+      ...DEFAULT_JSON_OPTIONS,
+      mode: 'compact',
+      keyCase: 'snake',
+    });
+
+    expect(toCamel.ok && toCamel.value).toBe(
+      '{"userName": "Ada", "profile": {"apiKey": 1}}',
+    );
+    expect(toPascal.ok && toPascal.value).toBe('{"UserName": "Ada"}');
+    expect(toSnake.ok && toSnake.value).toBe(
+      '{"user_name": "Ada", "html_parser": true}',
+    );
+  });
+
   it('sorts object keys when requested', () => {
     const result = formatter.format('{zeta: 1, alpha: 2}', {
       ...DEFAULT_JSON_OPTIONS,

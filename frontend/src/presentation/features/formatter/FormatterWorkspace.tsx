@@ -2,7 +2,7 @@
  * Imports from packages
  */
 import { Form, Formik, type FormikProps } from 'formik';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Imports from app
@@ -25,6 +25,7 @@ import {
   type HtmlScriptIndent,
   type HtmlTemplating,
   type HtmlWrapAttributes,
+  type JsonKeyCase,
   type OutputMode,
   type SqlKeywordCase,
   type YamlNullStyle,
@@ -36,6 +37,8 @@ import type { IndentStyle } from '@domain/shared/indent';
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
+import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
+import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
 import {
@@ -44,6 +47,7 @@ import {
 } from '@presentation/editors/languages';
 import { FormatterOptionsFields } from '@presentation/features/formatter/FormatterOptionsFields';
 import { useFormattedInputSync } from '@presentation/features/formatter/useFormattedInputSync';
+import { fileNameFor } from '@presentation/files/text-file';
 import { SAMPLE_SOURCES } from '@presentation/fixtures/samples';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
@@ -67,6 +71,7 @@ interface FormatterFormValues {
   source: string;
   indent: IndentStyle;
   mode: OutputMode;
+  keyCase: JsonKeyCase;
   sortKeys: boolean;
   dropNulls: boolean;
   escapeUnicode: boolean;
@@ -105,6 +110,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   const output = useAppSelector((state) => state.workspace.output);
   const error = useAppSelector((state) => state.workspace.error);
   const formikRef = useRef<FormikProps<FormatterFormValues>>(null);
+  const [openedName, setOpenedName] = useState<string | null>(null);
   const formatter = formatterRegistry.get(formatterId);
   const historyScope = `formatter:${formatterId}` as const;
   const { entries, remember } = useInputHistory(historyScope);
@@ -123,6 +129,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
 
     dispatch(clearResult());
     dispatch(setSource(stored?.source ?? SAMPLE_SOURCES[formatterId]));
+    setOpenedName(null);
 
     if (stored?.output) {
       dispatch(setOutput(stored.output));
@@ -142,6 +149,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
 
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
+        setOpenedName(null);
 
         return;
       }
@@ -238,20 +246,35 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
               title="Input"
               fill
               actions={
-                <HistorySelect
-                  entries={entries}
-                  currentSource={values.source}
-                  onSelect={(entry) => {
-                    void setFieldValue('source', entry.source);
-                    dispatch(setSource(entry.source));
-
-                    if (entry.output) {
-                      dispatch(setOutput(entry.output));
-                    } else {
+                <>
+                  <FileOpenButton
+                    onLoad={(text, fileName) => {
+                      void setFieldValue('source', text);
+                      dispatch(setSource(text));
                       dispatch(clearResult());
-                    }
-                  }}
-                />
+                      setOpenedName(fileName);
+                    }}
+                  />
+                  <FileDownloadButton
+                    fileName={fileNameFor(openedName, 'input', formatterId)}
+                    text={values.source}
+                  />
+                  <HistorySelect
+                    entries={entries}
+                    currentSource={values.source}
+                    onSelect={(entry) => {
+                      void setFieldValue('source', entry.source);
+                      dispatch(setSource(entry.source));
+                      setOpenedName(null);
+
+                      if (entry.output) {
+                        dispatch(setOutput(entry.output));
+                      } else {
+                        dispatch(clearResult());
+                      }
+                    }}
+                  />
+                </>
               }
             >
               <CodeEditor
@@ -284,14 +307,21 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
               title={error ? 'Error' : 'Formatted'}
               fill
               actions={
-                <button
-                  type="button"
-                  className="tui-inline-cmd"
-                  disabled={!output || Boolean(error)}
-                  onClick={() => dispatchTuiCommand('copy')}
-                >
-                  &quot;Copy&quot;
-                </button>
+                <>
+                  <FileDownloadButton
+                    fileName={fileNameFor(openedName, 'formatted', formatterId)}
+                    text={output}
+                    disabled={Boolean(error)}
+                  />
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    disabled={!output || Boolean(error)}
+                    onClick={() => dispatchTuiCommand('copy')}
+                  >
+                    &quot;Copy&quot;
+                  </button>
+                </>
               }
             >
               <div className="formatter-workspace__output">
@@ -333,6 +363,7 @@ function optionDefaults(
   return {
     indent: jsonLike.indent,
     mode: jsonLike.mode,
+    keyCase: 'keyCase' in options ? options.keyCase : 'as-is',
     sortKeys: 'sortKeys' in options ? options.sortKeys : false,
     dropNulls: 'dropNulls' in options ? options.dropNulls : false,
     escapeUnicode: 'escapeUnicode' in options ? options.escapeUnicode : false,
@@ -371,6 +402,7 @@ function toFormatterOptions(
     return {
       indent: values.indent,
       mode: values.mode,
+      keyCase: values.keyCase,
       sortKeys: values.sortKeys,
       dropNulls: values.dropNulls,
       escapeUnicode: values.escapeUnicode,
@@ -410,6 +442,7 @@ function toFormatterOptions(
     indent: values.indent,
     mode: values.mode,
     sortKeys: values.sortKeys,
+    keyCase: values.keyCase,
     quoting: values.quoting,
     forceQuotes: values.forceQuotes,
     documentStart: values.documentStart,

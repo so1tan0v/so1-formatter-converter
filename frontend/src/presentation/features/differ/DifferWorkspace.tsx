@@ -1,12 +1,14 @@
 /**
  * Imports from packages
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
+import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
+import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { DiffCodeEditor } from '@presentation/editors/DiffCodeEditor';
 import type { DiffSide } from '@presentation/editors/DiffCodeEditor';
 import {
@@ -201,13 +203,23 @@ export function DifferWorkspace() {
             <span className="differ-side__name" title={draft.originalName}>
               {draft.originalName}
             </span>
-            <FilePickButton
-              label="Open"
-              onFile={(file) => {
-                void loadFiles([file]).then((loaded) => {
-                  applyLoaded(loaded, 'original');
-                });
+            <FileOpenButton
+              onLoad={(text, fileName) => {
+                applyLoaded(
+                  [
+                    {
+                      name: fileName,
+                      text,
+                      language: languageFromFileName(fileName),
+                    },
+                  ],
+                  'original',
+                );
               }}
+            />
+            <FileDownloadButton
+              fileName={draft.originalName}
+              text={draft.original}
             />
           </div>
           <div className="differ-side">
@@ -215,13 +227,23 @@ export function DifferWorkspace() {
             <span className="differ-side__name" title={draft.modifiedName}>
               {draft.modifiedName}
             </span>
-            <FilePickButton
-              label="Open"
-              onFile={(file) => {
-                void loadFiles([file]).then((loaded) => {
-                  applyLoaded(loaded, 'modified');
-                });
+            <FileOpenButton
+              onLoad={(text, fileName) => {
+                applyLoaded(
+                  [
+                    {
+                      name: fileName,
+                      text,
+                      language: languageFromFileName(fileName),
+                    },
+                  ],
+                  'modified',
+                );
               }}
+            />
+            <FileDownloadButton
+              fileName={draft.modifiedName}
+              text={draft.modified}
             />
           </div>
         </div>
@@ -280,46 +302,5 @@ async function loadFiles(files: File[]): Promise<LoadedFile[]> {
       text: await file.text(),
       language: languageFromFileName(file.name),
     })),
-  );
-}
-
-interface FilePickButtonProps {
-  label: string;
-  onFile: (file: File) => void;
-}
-
-/**
- * Кнопка выбора локального файла
- *
- * @param label Подпись кнопки
- * @param onFile Выбранный файл
- */
-function FilePickButton({ label, onFile }: FilePickButtonProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <>
-      <button
-        type="button"
-        className="tui-inline-cmd"
-        onClick={() => inputRef.current?.click()}
-      >
-        &quot;{label}&quot;
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        className="differ-file-input"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-
-          event.target.value = '';
-
-          if (file) {
-            onFile(file);
-          }
-        }}
-      />
-    </>
   );
 }

@@ -24,8 +24,11 @@ import type { ViewerId } from '@domain/viewer/types';
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
+import { FileDownloadButton } from '@presentation/components/FileDownloadButton';
+import { FileOpenButton } from '@presentation/components/FileOpenButton';
 import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
+import { fileNameFor } from '@presentation/files/text-file';
 import { VIEW_SAMPLES } from '@presentation/fixtures/samples';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
@@ -57,6 +60,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const formikRef = useRef<FormikProps<ViewerFormValues>>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [overlayHost, setOverlayHost] = useState<Element | null>(null);
+  const [openedName, setOpenedName] = useState<string | null>(null);
   const viewer = viewerRegistry.get(viewerId);
   const sample = VIEW_SAMPLES[viewerId] ?? '';
   const historyScope = `viewer:${viewerId}` as const;
@@ -88,6 +92,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
 
     dispatch(clearResult());
     dispatch(setSource(stored?.source ?? sample));
+    setOpenedName(null);
 
     if (stored?.output) {
       publishPreview(stored.source);
@@ -113,6 +118,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
       if (command === 'sample') {
         await formikRef.current?.setFieldValue('source', sample);
         dispatch(setSource(sample));
+        setOpenedName(null);
       }
     };
 
@@ -181,20 +187,39 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
               hint={viewer.sourceLabel}
               fill
               actions={
-                <HistorySelect
-                  entries={entries}
-                  currentSource={values.source}
-                  onSelect={(entry) => {
-                    void setFieldValue('source', entry.source);
-                    dispatch(setSource(entry.source));
-
-                    if (entry.output) {
-                      publishPreview(entry.source);
-                    } else {
+                <>
+                  <FileOpenButton
+                    onLoad={(text, fileName) => {
+                      void setFieldValue('source', text);
+                      dispatch(setSource(text));
                       dispatch(clearResult());
-                    }
-                  }}
-                />
+                      setOpenedName(fileName);
+                    }}
+                  />
+                  <FileDownloadButton
+                    fileName={fileNameFor(
+                      openedName,
+                      'input',
+                      viewerSourceExtension(viewerId),
+                    )}
+                    text={values.source}
+                  />
+                  <HistorySelect
+                    entries={entries}
+                    currentSource={values.source}
+                    onSelect={(entry) => {
+                      void setFieldValue('source', entry.source);
+                      dispatch(setSource(entry.source));
+                      setOpenedName(null);
+
+                      if (entry.output) {
+                        publishPreview(entry.source);
+                      } else {
+                        dispatch(clearResult());
+                      }
+                    }}
+                  />
+                </>
               }
             >
               <CodeEditor
@@ -228,14 +253,21 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
               hint={error ? undefined : viewer.label}
               fill
               actions={
-                <button
-                  type="button"
-                  className="tui-inline-cmd"
-                  disabled={!output || Boolean(error)}
-                  onClick={() => setFullscreen(true)}
-                >
-                  &quot;Fullscreen&quot;
-                </button>
+                <>
+                  <FileDownloadButton
+                    fileName={fileNameFor(openedName, 'preview', 'html')}
+                    text={output}
+                    disabled={Boolean(error)}
+                  />
+                  <button
+                    type="button"
+                    className="tui-inline-cmd"
+                    disabled={!output || Boolean(error)}
+                    onClick={() => setFullscreen(true)}
+                  >
+                    &quot;Fullscreen&quot;
+                  </button>
+                </>
               }
             >
               <div className="formatter-workspace__output">
@@ -287,4 +319,8 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
       )}
     </Formik>
   );
+}
+
+function viewerSourceExtension(viewerId: ViewerId): string {
+  return viewerId === 'markdown' ? 'md' : 'jira';
 }
