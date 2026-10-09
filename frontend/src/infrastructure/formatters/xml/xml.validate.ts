@@ -10,13 +10,16 @@ export function xmlError(source: string): string | null {
 }
 
 class XmlParser {
+  private readonly source: string;
   private index = 0;
   private line = 1;
   private column = 1;
   private readonly stack: string[] = [];
   private rooted = false;
 
-  constructor(private readonly source: string) {}
+  constructor(source: string) {
+    this.source = source;
+  }
 
   parse(): string | null {
     while (this.index < this.source.length) {

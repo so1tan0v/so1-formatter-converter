@@ -32,11 +32,7 @@ import {
   inputLanguageFor,
   outputLanguageFor,
 } from '@presentation/editors/languages';
-import {
-  DIFFER_DRAFT_KEY,
-  parseDifferDraft,
-  writeDifferDraft,
-} from '@presentation/features/differ/differ-draft';
+import { writeDifferDraft } from '@presentation/features/differ/differ-draft';
 import { locateError } from '@presentation/features/formatter/error-location';
 import { FormatterOptionsFields } from '@presentation/features/formatter/FormatterOptionsFields';
 import { formatterHasAdvancedOptions } from '@presentation/features/formatter/formatter-groups';
@@ -51,7 +47,11 @@ import {
   saveFormatterOptions,
 } from '@presentation/features/formatter/formatter-options';
 import { useFormattedInputSync } from '@presentation/features/formatter/useFormattedInputSync';
-import { readFormatterHandoff } from '@presentation/features/transfer/tool-transfer';
+import {
+  preservedViewerOutput,
+  readFormatterHandoff,
+  replaceDifferSide,
+} from '@presentation/features/transfer/tool-transfer';
 import { fileNameFor } from '@presentation/files/text-file';
 import { SAMPLE_SOURCES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
@@ -256,6 +256,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                   <button
                     type="button"
                     className="tui-inline-cmd"
+                    aria-expanded={settings.open}
                     onClick={() => settings.setOpen(!settings.open)}
                   >
                     {settings.open ? '"Hide"' : '"Show"'}
@@ -401,39 +402,26 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                       className="tui-inline-cmd"
                       disabled={!output || Boolean(error)}
                       onClick={() => {
-                        const current = parseDifferDraft(
-                          window.localStorage.getItem(DIFFER_DRAFT_KEY),
-                        );
-                        const fromDiffer = handed?.from.tool === 'differ';
-                        const side = fromDiffer ? handed.from.side : null;
+                        const origin = handed?.from;
 
-                        writeDifferDraft({
-                          original:
-                            side === 'modified'
-                              ? (current?.original ?? '')
-                              : side === 'original'
-                                ? output
-                                : values.source,
-                          modified:
-                            side === 'original'
-                              ? (current?.modified ?? '')
-                              : output,
-                          language: formatterId,
-                          originalName:
-                            side === 'modified'
-                              ? (current?.originalName ?? 'original')
-                              : side === 'original'
-                                ? (current?.originalName ??
-                                  `formatted.${formatterId}`)
-                                : (openedName ?? `input.${formatterId}`),
-                          modifiedName:
-                            side === 'original'
-                              ? (current?.modifiedName ?? 'modified')
-                              : side === 'modified'
-                                ? (current?.modifiedName ??
-                                  `formatted.${formatterId}`)
-                                : `formatted.${formatterId}`,
-                        });
+                        if (origin?.tool === 'differ') {
+                          writeDifferDraft(
+                            replaceDifferSide(
+                              origin.draft,
+                              origin.side,
+                              output,
+                            ),
+                          );
+                        } else {
+                          writeDifferDraft({
+                            original: values.source,
+                            modified: output,
+                            language: formatterId,
+                            originalName: openedName ?? `input.${formatterId}`,
+                            modifiedName: `formatted.${formatterId}`,
+                          });
+                        }
+
                         navigate('/differ');
                       }}
                     >
@@ -448,10 +436,14 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                           handed?.from.tool === 'viewer'
                             ? handed.from.viewerId
                             : 'markdown';
+                        const scope = `viewer:${viewerId}` as const;
 
-                        historyStore.remember(`viewer:${viewerId}`, {
+                        historyStore.remember(scope, {
                           source: output,
-                          output: '',
+                          output: preservedViewerOutput(
+                            historyStore.list(scope),
+                            output,
+                          ),
                         });
                         navigate(`/viewer/${viewerId}`, {
                           state: {

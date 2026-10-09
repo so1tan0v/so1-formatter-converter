@@ -1,7 +1,7 @@
 /**
  * Imports from packages
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -33,7 +33,11 @@ import { TUI_COMMAND_EVENT, type TuiCommand } from '@presentation/tui/commands';
 /**
  * Imports from relative
  */
-import { DIFFER_DRAFT_KEY, parseDifferDraft } from './differ-draft';
+import {
+  DIFFER_DRAFT_KEY,
+  parseDifferDraft,
+  writeDifferDraft,
+} from './differ-draft';
 import type { DifferDraft } from './differ-draft';
 import {
   DIFFER_LANGUAGE_LABELS,
@@ -57,6 +61,9 @@ export function DifferWorkspace() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [draft, setDraft] = useState<DifferDraft>(readDraft);
+  const draftRef = useRef(draft);
+
+  draftRef.current = draft;
   const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
   const [collapseUnchanged, setCollapseUnchanged] = useState(false);
   const [fastError, setFastError] = useState<string | null>(null);
@@ -69,15 +76,21 @@ export function DifferWorkspace() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(DIFFER_DRAFT_KEY, JSON.stringify(draft));
-      } catch {
-        return;
-      }
+      writeDifferDraft(draft);
     }, 300);
 
     return () => window.clearTimeout(timer);
   }, [draft]);
+
+  useEffect(() => {
+    return () => {
+      writeDifferDraft(draftRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    setFastError(null);
+  }, [draft.language, draft.modified, draft.original]);
 
   useEffect(() => {
     const run = async (command: TuiCommand) => {
@@ -185,12 +198,13 @@ export function DifferWorkspace() {
       return;
     }
 
+    writeDifferDraft(draft);
     navigate(`/formatter/${formatterId}`, {
       state: {
         formatterHandoff: {
           formatterId,
           source: side === 'original' ? draft.original : draft.modified,
-          from: { tool: 'differ', side },
+          from: { tool: 'differ', side, draft },
         },
       },
     });
@@ -206,6 +220,7 @@ export function DifferWorkspace() {
           <button
             type="button"
             className="tui-inline-cmd"
+            aria-expanded={settings.open}
             onClick={() => settings.setOpen(!settings.open)}
           >
             {settings.open ? '"Hide"' : '"Show"'}

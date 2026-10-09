@@ -78,6 +78,10 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const [overlayHost, setOverlayHost] = useState<Element | null>(null);
   const [openedName, setOpenedName] = useState<string | null>(null);
   const [fastFormatterId, setFastFormatterId] = useState(readFastFormatterId);
+  const [fastFailure, setFastFailure] = useState<{
+    source: string;
+    message: string;
+  } | null>(null);
   const viewer = viewerRegistry.get(viewerId);
   const handedSource = useMemo(
     () => readViewerHandoff(location.state, viewerId),
@@ -224,215 +228,234 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
         dispatch(setError(result.error));
       }}
     >
-      {({ values, setFieldValue }) => (
-        <Form className="formatter-workspace">
-          <DebouncedSubmit signature={values.source} />
-          <div className="formatter-workspace__panes">
-            <AsciiFrame
-              title="Input"
-              hint={viewer.sourceLabel}
-              fill
-              actions={
-                <>
-                  <FileOpenButton
-                    onLoad={(text, fileName) => {
-                      rememberNext.current = true;
-                      void setFieldValue('source', text);
-                      dispatch(setSource(text));
-                      dispatch(clearResult());
-                      setOpenedName(fileName);
-                    }}
-                  />
-                  <FileDownloadButton
-                    fileName={fileNameFor(
-                      openedName,
-                      'input',
-                      viewerSourceExtension(viewerId),
-                    )}
-                    text={values.source}
-                  />
-                  <select
-                    id="viewer-formatter"
-                    className="tui-select tui-select--formatter"
-                    aria-label="Formatter"
-                    value={fastFormatterId}
-                    onChange={(event) => {
-                      const next = event.target.value;
+      {({ values, setFieldValue }) => {
+        const fastError =
+          fastFailure?.source === values.source ? fastFailure.message : null;
 
-                      if (!FORMATTER_IDS.some((id) => id === next)) {
-                        return;
-                      }
-
-                      const formatterId = next as FormatterId;
-
-                      setFastFormatterId(formatterId);
-                      writeFastFormatterId(formatterId);
-                    }}
-                  >
-                    {FORMATTER_IDS.map((id) => (
-                      <option key={id} value={id}>
-                        {id.toUpperCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="tui-inline-cmd"
-                    disabled={!values.source.trim()}
-                    onClick={() => {
-                      const result = formatWithSavedOptions(
-                        formatterRegistry,
-                        fastFormatterId,
-                        values.source,
-                      );
-
-                      if (!result.ok) {
-                        dispatch(setError(result.error));
-
-                        return;
-                      }
-
-                      void setFieldValue('source', result.value);
-                      dispatch(setSource(result.value));
-                      dispatch(clearResult());
-                    }}
-                  >
-                    &quot;Fast&quot;
-                  </button>
-                  <button
-                    type="button"
-                    className="tui-inline-cmd"
-                    disabled={!values.source.trim()}
-                    onClick={() => {
-                      navigate(`/formatter/${fastFormatterId}`, {
-                        state: {
-                          formatterHandoff: {
-                            formatterId: fastFormatterId,
-                            source: values.source,
-                            from: { tool: 'viewer', viewerId },
-                          },
-                        },
-                      });
-                    }}
-                  >
-                    &quot;Formatter&quot;
-                  </button>
-                  <HistorySelect
-                    entries={entries}
-                    currentSource={values.source}
-                    onSelect={(entry) => {
-                      void setFieldValue('source', entry.source);
-                      dispatch(setSource(entry.source));
-                      setOpenedName(null);
-
-                      if (entry.output) {
-                        publishPreview(entry.source);
-                      } else {
+        return (
+          <Form className="formatter-workspace">
+            <DebouncedSubmit signature={values.source} />
+            <div className="formatter-workspace__panes">
+              <AsciiFrame
+                title="Input"
+                hint={viewer.sourceLabel}
+                fill
+                actions={
+                  <>
+                    <FileOpenButton
+                      onLoad={(text, fileName) => {
+                        rememberNext.current = true;
+                        void setFieldValue('source', text);
+                        dispatch(setSource(text));
                         dispatch(clearResult());
-                      }
-                    }}
-                  />
-                </>
-              }
-            >
-              <CodeEditor
-                value={values.source}
-                language={viewer.editorLanguage}
-                ariaLabel={`${viewer.label} input`}
-                onChange={(next) => {
-                  void setFieldValue('source', next);
-                  dispatch(setSource(next));
-                }}
-              />
-            </AsciiFrame>
+                        setOpenedName(fileName);
+                      }}
+                    />
+                    <FileDownloadButton
+                      fileName={fileNameFor(
+                        openedName,
+                        'input',
+                        viewerSourceExtension(viewerId),
+                      )}
+                      text={values.source}
+                    />
+                    <select
+                      id="viewer-formatter"
+                      className="tui-select tui-select--formatter"
+                      aria-label="Formatter"
+                      value={fastFormatterId}
+                      onChange={(event) => {
+                        const next = event.target.value;
 
-            <div className="formatter-workspace__gutter">
-              <button
-                type="submit"
-                className="tui-inline-cmd tui-inline-cmd--block"
-                onClick={() => {
-                  rememberNext.current = true;
-                }}
-              >
-                &quot;Render&quot;
-              </button>
-              <span
-                className="formatter-workspace__gutter-arrow"
-                aria-hidden="true"
-              >
-                {'->'}
-              </span>
-            </div>
+                        if (!FORMATTER_IDS.some((id) => id === next)) {
+                          return;
+                        }
 
-            <AsciiFrame
-              title={error ? 'Error' : 'Preview'}
-              hint={error ? undefined : viewer.label}
-              fill
-              actions={
-                <>
-                  <FileDownloadButton
-                    fileName={fileNameFor(openedName, 'preview', 'html')}
-                    text={output}
-                    disabled={Boolean(error)}
-                  />
-                  <button
-                    type="button"
-                    className="tui-inline-cmd"
-                    disabled={!output || Boolean(error)}
-                    onClick={() => setFullscreen(true)}
-                  >
-                    &quot;Fullscreen&quot;
-                  </button>
-                </>
-              }
-            >
-              <div className="formatter-workspace__output">
-                {error ? (
-                  <p className="term-error" role="alert">
-                    {error}
-                  </p>
-                ) : output ? (
-                  <div
-                    className="markdown-preview"
-                    dangerouslySetInnerHTML={{ __html: output }}
-                  />
-                ) : (
-                  <p className="formatter-workspace__empty">
-                    Preview will appear here after you press Render.
-                  </p>
-                )}
-              </div>
-            </AsciiFrame>
-          </div>
-          {fullscreen && output && overlayHost
-            ? createPortal(
-                <div
-                  className="markdown-preview-fullscreen"
-                  role="dialog"
-                  aria-label="Markdown preview"
-                >
-                  <header className="markdown-preview-fullscreen__bar">
-                    <span className="markdown-preview-fullscreen__title">
-                      Preview — {viewer.label}
-                    </span>
+                        const formatterId = next as FormatterId;
+
+                        setFastFormatterId(formatterId);
+                        writeFastFormatterId(formatterId);
+                      }}
+                    >
+                      {FORMATTER_IDS.map((id) => (
+                        <option key={id} value={id}>
+                          {id.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       className="tui-inline-cmd"
-                      onClick={() => setFullscreen(false)}
+                      disabled={!values.source.trim()}
+                      onClick={() => {
+                        const result = formatWithSavedOptions(
+                          formatterRegistry,
+                          fastFormatterId,
+                          values.source,
+                        );
+
+                        if (!result.ok) {
+                          setFastFailure({
+                            source: values.source,
+                            message: result.error,
+                          });
+
+                          return;
+                        }
+
+                        setFastFailure(null);
+
+                        if (result.value === values.source) {
+                          return;
+                        }
+
+                        void setFieldValue('source', result.value);
+                        dispatch(setSource(result.value));
+                        dispatch(clearResult());
+                      }}
                     >
-                      &quot;Exit&quot;
+                      &quot;Fast&quot;
                     </button>
-                  </header>
+                    <button
+                      type="button"
+                      className="tui-inline-cmd"
+                      disabled={!values.source.trim()}
+                      onClick={() => {
+                        navigate(`/formatter/${fastFormatterId}`, {
+                          state: {
+                            formatterHandoff: {
+                              formatterId: fastFormatterId,
+                              source: values.source,
+                              from: { tool: 'viewer', viewerId },
+                            },
+                          },
+                        });
+                      }}
+                    >
+                      &quot;Formatter&quot;
+                    </button>
+                    <HistorySelect
+                      entries={entries}
+                      currentSource={values.source}
+                      onSelect={(entry) => {
+                        void setFieldValue('source', entry.source);
+                        dispatch(setSource(entry.source));
+                        setOpenedName(null);
+
+                        if (entry.output) {
+                          publishPreview(entry.source);
+                        } else {
+                          dispatch(clearResult());
+                        }
+                      }}
+                    />
+                  </>
+                }
+              >
+                {fastError ? (
+                  <p className="term-error transfer-error" role="alert">
+                    {fastError}
+                  </p>
+                ) : null}
+                <CodeEditor
+                  value={values.source}
+                  language={viewer.editorLanguage}
+                  ariaLabel={`${viewer.label} input`}
+                  onChange={(next) => {
+                    void setFieldValue('source', next);
+                    dispatch(setSource(next));
+                  }}
+                />
+              </AsciiFrame>
+
+              <div className="formatter-workspace__gutter">
+                <button
+                  type="submit"
+                  className="tui-inline-cmd tui-inline-cmd--block"
+                  onClick={() => {
+                    rememberNext.current = true;
+                  }}
+                >
+                  &quot;Render&quot;
+                </button>
+                <span
+                  className="formatter-workspace__gutter-arrow"
+                  aria-hidden="true"
+                >
+                  {'->'}
+                </span>
+              </div>
+
+              <AsciiFrame
+                title={error ? 'Error' : 'Preview'}
+                hint={error ? undefined : viewer.label}
+                fill
+                actions={
+                  <>
+                    <FileDownloadButton
+                      fileName={fileNameFor(openedName, 'preview', 'html')}
+                      text={output}
+                      disabled={Boolean(error)}
+                    />
+                    <button
+                      type="button"
+                      className="tui-inline-cmd"
+                      disabled={!output || Boolean(error)}
+                      onClick={() => setFullscreen(true)}
+                    >
+                      &quot;Fullscreen&quot;
+                    </button>
+                  </>
+                }
+              >
+                <div className="formatter-workspace__output">
+                  {error ? (
+                    <p className="term-error" role="alert">
+                      {error}
+                    </p>
+                  ) : output ? (
+                    <div
+                      className="markdown-preview"
+                      dangerouslySetInnerHTML={{ __html: output }}
+                    />
+                  ) : (
+                    <p className="formatter-workspace__empty">
+                      Preview will appear here after you press Render.
+                    </p>
+                  )}
+                </div>
+              </AsciiFrame>
+            </div>
+            {fullscreen && output && overlayHost
+              ? createPortal(
                   <div
-                    className="markdown-preview markdown-preview--expanded"
-                    dangerouslySetInnerHTML={{ __html: output }}
-                  />
-                </div>,
-                overlayHost,
-              )
-            : null}
-        </Form>
-      )}
+                    className="markdown-preview-fullscreen"
+                    role="dialog"
+                    aria-label="Markdown preview"
+                  >
+                    <header className="markdown-preview-fullscreen__bar">
+                      <span className="markdown-preview-fullscreen__title">
+                        Preview — {viewer.label}
+                      </span>
+                      <button
+                        type="button"
+                        className="tui-inline-cmd"
+                        onClick={() => setFullscreen(false)}
+                      >
+                        &quot;Exit&quot;
+                      </button>
+                    </header>
+                    <div
+                      className="markdown-preview markdown-preview--expanded"
+                      dangerouslySetInnerHTML={{ __html: output }}
+                    />
+                  </div>,
+                  overlayHost,
+                )
+              : null}
+          </Form>
+        );
+      }}
     </Formik>
   );
 }

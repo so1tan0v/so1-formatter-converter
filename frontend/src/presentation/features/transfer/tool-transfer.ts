@@ -11,6 +11,7 @@ import { FORMATTER_IDS } from '@domain/formatter/types';
 import type { FormatterId } from '@domain/formatter/types';
 import { failure, toErrorMessage } from '@domain/shared/result';
 import type { Result } from '@domain/shared/result';
+import { VIEWER_IDS } from '@domain/viewer/types';
 import type { ViewerId } from '@domain/viewer/types';
 
 /**
@@ -22,7 +23,11 @@ import { parseLooseYaml } from '@infrastructure/formatters/yaml/yaml.parser';
 /**
  * Imports from presentation
  */
-import type { DifferLanguage } from '@presentation/features/differ/languages';
+import type { DifferDraft } from '@presentation/features/differ/differ-draft';
+import {
+  isDifferLanguage,
+  type DifferLanguage,
+} from '@presentation/features/differ/languages';
 import { toFormatterOptions } from '@presentation/features/formatter/formatter-form';
 import { loadFormatterOptions } from '@presentation/features/formatter/formatter-options';
 
@@ -35,7 +40,7 @@ export interface FormatterHandoff {
   source: string;
   from:
     | { tool: 'viewer'; viewerId: ViewerId }
-    | { tool: 'differ'; side: TransferSide };
+    | { tool: 'differ'; side: TransferSide; draft: DifferDraft };
 }
 
 export interface ViewerHandoff {
@@ -117,6 +122,41 @@ export function readFormatterHandoff(
 }
 
 /**
+ * Подставляет отформатированный текст в сторону, с которой открыли форматтер
+ *
+ * @param draft Черновик сравнения на момент перехода
+ * @param side Сторона, которую форматировали
+ * @param formatted Результат форматтера
+ */
+export function replaceDifferSide(
+  draft: DifferDraft,
+  side: TransferSide,
+  formatted: string,
+): DifferDraft {
+  if (side === 'original') {
+    return { ...draft, original: formatted };
+  }
+
+  return { ...draft, modified: formatted };
+}
+
+/**
+ * Оставляет уже сохранённый предпросмотр, если в историю попадает тот же текст
+ *
+ * @param entries Записи просмотрщика
+ * @param source Текст, который уходит в просмотрщик
+ */
+export function preservedViewerOutput(
+  entries: readonly { source: string; output: string }[],
+  source: string,
+): string {
+  const trimmed = source.trim();
+  const previous = entries.find((entry) => entry.source.trim() === trimmed);
+
+  return previous?.output ?? '';
+}
+
+/**
  * Читает текст, переданный в просмотрщик
  *
  * @param state Состояние навигации
@@ -153,9 +193,14 @@ export function formatWithSavedOptions(
     return failure(problem);
   }
 
+  // JSONPath из настроек вырезал бы значение, а Fast должен оставить документ.
+  const saved = {
+    ...loadFormatterOptions(id),
+    query: '',
+  };
   const options = toFormatterOptions(id, {
     source,
-    ...loadFormatterOptions(id),
+    ...saved,
   });
 
   return formatText(registry, id, source, options);
@@ -207,12 +252,13 @@ function isFormatterHandoff(value: unknown): value is FormatterHandoff {
   const origin = from as Record<string, unknown>;
 
   if (origin.tool === 'viewer') {
-    return origin.viewerId === 'markdown' || origin.viewerId === 'jira';
+    return isViewerId(origin.viewerId);
   }
 
   return (
     origin.tool === 'differ' &&
-    (origin.side === 'original' || origin.side === 'modified')
+    (origin.side === 'original' || origin.side === 'modified') &&
+    isDifferDraft(origin.draft)
   );
 }
 
@@ -223,8 +269,25 @@ function isViewerHandoff(value: unknown): value is ViewerHandoff {
 
   const record = value as Record<string, unknown>;
 
+  return isViewerId(record.viewerId) && typeof record.source === 'string';
+}
+
+function isViewerId(value: unknown): value is ViewerId {
+  return VIEWER_IDS.some((id) => id === value);
+}
+
+function isDifferDraft(value: unknown): value is DifferDraft {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+
   return (
-    (record.viewerId === 'markdown' || record.viewerId === 'jira') &&
-    typeof record.source === 'string'
+    typeof record.original === 'string' &&
+    typeof record.modified === 'string' &&
+    isDifferLanguage(record.language) &&
+    typeof record.originalName === 'string' &&
+    typeof record.modifiedName === 'string'
   );
 }
