@@ -2,7 +2,11 @@
  * Imports from domain
  */
 import type { TextConverter } from '@domain/converter/ports';
-import type { ConverterFormat, ConverterId } from '@domain/converter/types';
+import type {
+  ConverterFormat,
+  ConverterId,
+  ConverterOptions,
+} from '@domain/converter/types';
 
 /**
  * Imports from relative
@@ -27,7 +31,7 @@ export function defineConverter(
   targetFormat: ConverterFormat,
   sourceLabel: string,
   targetLabel: string,
-  transform: (input: string) => string,
+  transform: (input: string, options: ConverterOptions) => string,
 ): TextConverter {
   return {
     id,
@@ -37,6 +41,7 @@ export function defineConverter(
     targetFormat,
     sourceLabel,
     targetLabel,
-    convert: (input) => convertSource(input, transform),
+    convert: (input, options) =>
+      convertSource(input, (source) => transform(source, options)),
   };
 }

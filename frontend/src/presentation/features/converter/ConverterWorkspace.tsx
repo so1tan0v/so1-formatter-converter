@@ -39,6 +39,11 @@ import { HistorySelect } from '@presentation/components/HistorySelect';
 import { CodeEditor } from '@presentation/editors/CodeEditor';
 import { languageForFormat } from '@presentation/editors/languages';
 import { ExcelPreview } from '@presentation/features/converter/ExcelPreview';
+import { ExcelSettings } from '@presentation/features/converter/ExcelSettings';
+import {
+  loadExcelOptions,
+  saveExcelOptions,
+} from '@presentation/features/converter/excel-options';
 import {
   oppositeConverter,
   readConverterHandoff,
@@ -82,6 +87,10 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
   const formikRef = useRef<FormikProps<ConverterFormValues>>(null);
   const rememberNext = useRef(false);
   const [openedName, setOpenedName] = useState<string | null>(null);
+  const [excelOptions, setExcelOptions] = useState(loadExcelOptions);
+  const excelOptionsRef = useRef(excelOptions);
+
+  excelOptionsRef.current = excelOptions;
   const converter = converterRegistry.get(converterId);
   const reverseId = oppositeConverter(converterId);
   const sample = CONVERT_SAMPLES[converterId] ?? '';
@@ -203,7 +212,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
           converterRegistry,
           converterId,
           values.source,
-          {},
+          converterId === 'json-excel' ? { ...excelOptionsRef.current } : {},
         );
 
         if (result.ok) {
@@ -221,7 +230,23 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
     >
       {({ values, setFieldValue }) => (
         <Form className="formatter-workspace">
-          <DebouncedSubmit signature={values.source} />
+          <DebouncedSubmit
+            signature={
+              converter.id === 'json-excel'
+                ? `${values.source}\u0000${JSON.stringify(excelOptions)}`
+                : values.source
+            }
+          />
+          {converter.id === 'json-excel' ? (
+            <ExcelSettings
+              options={excelOptions}
+              onChange={(next) => {
+                excelOptionsRef.current = next;
+                setExcelOptions(next);
+                saveExcelOptions(next);
+              }}
+            />
+          ) : null}
           <div className="formatter-workspace__panes">
             <AsciiFrame
               title="Input"
@@ -330,7 +355,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                         try {
                           downloadBytes(
                             fileNameFor(openedName, 'output', 'xlsx'),
-                            jsonToExcelFile(values.source),
+                            jsonToExcelFile(values.source, excelOptions),
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                           );
                         } catch (cause) {

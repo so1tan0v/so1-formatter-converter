@@ -109,6 +109,127 @@ describe('json → excel', () => {
     expect(() => jsonToExcelFile('[]')).toThrow('JSON array is empty');
   });
 
+  it('пишет null текстом и оставляет пропуск поля пустым', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel('[{"id":1,"name":null},{"id":2}]', { nulls: 'null' }),
+      ),
+    ).toEqual({
+      header: true,
+      rows: [
+        ['id', 'name'],
+        ['1', 'null'],
+        ['2', ''],
+      ],
+    });
+  });
+
+  it('пишет логические значения числами 1 и 0', () => {
+    const xml = workbookText(jsonToExcelFile(ROWS, { booleans: 'one-zero' }));
+
+    expect(xml).toContain('<c r="C2"><v>1</v></c>');
+    expect(xml).toContain('<c r="C3"><v>0</v></c>');
+    expect(xml).not.toContain('TRUE');
+    expect(xml).not.toContain('t="b"');
+  });
+
+  it('разворачивает вложенные объекты в колонки', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel(
+          '{"user":{"name":"Ada","address":{"city":"London"}},"active":true}',
+          { flatten: true },
+        ),
+      ),
+    ).toEqual({
+      header: true,
+      rows: [
+        ['user.name', 'user.address.city', 'active'],
+        ['Ada', 'London', 'TRUE'],
+      ],
+    });
+  });
+
+  it('склеивает массив скаляров в одну ячейку', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel('{"tags":["a",null,"b"]}', { arrays: 'join' }),
+      ),
+    ).toEqual({
+      header: true,
+      rows: [['tags'], ['a, , b']],
+    });
+  });
+
+  it('размножает строки по массиву объектов', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel('[{"id":1,"items":[{"sku":"a"},{"sku":"b"}]}]', {
+          arrays: 'expand',
+        }),
+      ),
+    ).toEqual({
+      header: true,
+      rows: [
+        ['id', 'sku'],
+        ['1', 'a'],
+        ['1', 'b'],
+      ],
+    });
+  });
+
+  it('при развороте вложенных полей префиксует колонки массива', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel('{"id":1,"name":"Ada","items":[{"name":"Pen"}]}', {
+          flatten: true,
+          arrays: 'expand',
+        }),
+      )?.rows,
+    ).toEqual([
+      ['id', 'name', 'items.name'],
+      ['1', 'Ada', 'Pen'],
+    ]);
+  });
+
+  it('кладёт ключ словаря в колонку key', () => {
+    expect(
+      readExcelTable(
+        jsonToExcel('{"ada":{"city":"London"},"grace":{"city":"New York"}}', {
+          keyColumn: true,
+        }),
+      ),
+    ).toEqual({
+      header: true,
+      rows: [
+        ['key', 'city'],
+        ['ada', 'London'],
+        ['grace', 'New York'],
+      ],
+    });
+  });
+
+  it('убирает строку заголовка', () => {
+    expect(readExcelTable(jsonToExcel(ROWS, { header: false }))).toEqual({
+      header: false,
+      rows: [
+        ['1', 'Ada', 'TRUE'],
+        ['2', 'Grace', 'FALSE'],
+      ],
+    });
+  });
+
+  it('отклоняет слишком широкое размножение строк', () => {
+    const input = JSON.stringify({
+      a: Array.from({ length: 101 }, (_, index) => index),
+      b: Array.from({ length: 100 }, (_, index) => index),
+    });
+
+    expect(() => jsonToExcel(input, { arrays: 'expand' })).toThrow(
+      'JSON expands to more than 10000 rows',
+    );
+  });
+
   it('упаковывает книгу так, что unzip читает лист', () => {
     const file = join(mkdtempSync(join(tmpdir(), 'xlsx-')), 'book.xlsx');
 
