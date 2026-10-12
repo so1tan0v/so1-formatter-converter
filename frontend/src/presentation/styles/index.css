@@ -652,6 +652,49 @@ html[data-ascii='false'] .tui-panel__rule {
   flex-direction: column;
 }
 
+.excel-preview {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--app-bg);
+}
+
+.excel-preview table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  color: var(--app-fg);
+  font: inherit;
+}
+
+.excel-preview th,
+.excel-preview td {
+  border: 1px solid var(--app-border);
+  padding: 0.28rem 0.6rem;
+  text-align: left;
+  white-space: pre-wrap;
+  vertical-align: top;
+  max-width: 28rem;
+}
+
+.excel-preview th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--app-bg);
+  color: var(--app-label);
+  font-weight: 500;
+}
+
+.excel-preview td.is-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.excel-preview tbody tr:hover td {
+  background: var(--app-accent-dim);
+}
+
 .formatter-workspace__empty {
   position: absolute;
   inset: 0;
