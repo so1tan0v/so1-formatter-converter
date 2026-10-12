@@ -17,6 +17,7 @@ describe('converter pairs', () => {
     expect(oppositeConverter('json-yaml')).toBe('yaml-json');
     expect(oppositeConverter('yaml-json')).toBe('json-yaml');
     expect(pairForConverter('markdown-html')?.label).toBe('Markdown ↔ HTML');
+    expect(oppositeConverter('json-excel')).toBeUndefined();
   });
 
   it('принимает текст только для того конвертера, которому его передали', () => {

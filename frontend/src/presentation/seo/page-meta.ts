@@ -81,6 +81,12 @@ export const INDEXABLE_PAGES: PageMeta[] = [
     description: 'Convert SQL INSERT statements to JSON.',
   },
   {
+    path: '/converter/json-excel',
+    title: 'JSON to Excel',
+    description:
+      'Convert JSON rows to an .xlsx workbook with headers from object fields.',
+  },
+  {
     path: '/viewer/markdown',
     title: 'Markdown viewer',
     description: 'Preview Markdown with highlighted code blocks.',

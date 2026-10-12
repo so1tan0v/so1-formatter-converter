@@ -101,6 +101,7 @@ const ready = true;
     active: false
 `,
   'json-sql': JSON_SAMPLE,
+  'json-excel': JSON_SAMPLE,
   'sql-json': `INSERT INTO "data" ("id", "name", "active")
 VALUES
   (1, 'Ada', TRUE),

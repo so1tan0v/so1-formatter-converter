@@ -31,9 +31,31 @@ export function readTextFile(file: File): Promise<string> {
  * @param text Содержимое файла
  */
 export function downloadTextFile(fileName: string, text: string): void {
-  const url = URL.createObjectURL(
+  downloadBlob(
+    fileName,
     new Blob([text], { type: 'text/plain;charset=utf-8' }),
   );
+}
+
+/**
+ * Скачивает байты как файл в браузере
+ *
+ * @param fileName Имя сохраняемого файла
+ * @param bytes Содержимое файла
+ * @param mime MIME-тип содержимого
+ */
+export function downloadBytes(
+  fileName: string,
+  bytes: Uint8Array,
+  mime: string,
+): void {
+  const copy = new Uint8Array(bytes);
+
+  downloadBlob(fileName, new Blob([copy], { type: mime }));
+}
+
+function downloadBlob(fileName: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 
   link.href = url;

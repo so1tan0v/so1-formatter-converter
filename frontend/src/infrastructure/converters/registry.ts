@@ -15,6 +15,7 @@ import type { ConverterId } from '@domain/converter/types';
 import { defineConverter } from './define-converter';
 import { jsonToYaml } from './json-yaml/json-to-yaml';
 import { yamlToJson } from './json-yaml/yaml-to-json';
+import { jsonToExcel } from './json-excel/json-to-excel';
 import { jsonToSql } from './json-sql/json-to-sql';
 import { sqlToJson } from './json-sql/sql-to-json';
 import { HtmlMarkdownConverter } from './markdown-html/html-markdown.converter';
@@ -66,6 +67,15 @@ export function createConverterRegistry(): ConverterRegistry {
       'SQL',
       'JSON',
       sqlToJson,
+    ),
+    defineConverter(
+      'json-excel',
+      'JSON → Excel',
+      'json',
+      'plaintext',
+      'JSON',
+      'Excel',
+      jsonToExcel,
     ),
   ];
   const byId = new Map(

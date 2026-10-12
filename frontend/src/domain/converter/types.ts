@@ -10,6 +10,7 @@ export const CONVERTER_IDS = [
   'yaml-json',
   'json-sql',
   'sql-json',
+  'json-excel',
 ] as const;
 
 export type ConverterId = (typeof CONVERTER_IDS)[number];

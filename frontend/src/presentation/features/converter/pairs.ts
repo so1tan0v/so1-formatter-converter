@@ -6,7 +6,7 @@ import type { ConverterId } from '@domain/converter/types';
 export interface ConverterPair {
   label: string;
   forward: ConverterId;
-  reverse: ConverterId;
+  reverse?: ConverterId;
 }
 
 /**
@@ -33,6 +33,10 @@ export const CONVERTER_PAIRS: ConverterPair[] = [
     forward: 'json-sql',
     reverse: 'sql-json',
   },
+  {
+    label: 'JSON → Excel',
+    forward: 'json-excel',
+  },
 ];
 
 /**
@@ -54,11 +58,11 @@ export function pairForConverter(id: ConverterId): ConverterPair | undefined {
 export function oppositeConverter(id: ConverterId): ConverterId | undefined {
   const pair = pairForConverter(id);
 
-  if (!pair) {
-    return undefined;
+  if (!pair || pair.forward !== id) {
+    return pair?.forward;
   }
 
-  return pair.forward === id ? pair.reverse : pair.forward;
+  return pair.reverse;
 }
 
 export interface ConverterHandoff {
