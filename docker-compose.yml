@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: so1-formatter-converter-backend
     ports:
-      - "127.0.0.1:${BACKEND_PORT:-8081}:8081"
+      - "${BACKEND_PORT:-8081}:8081"
     environment:
       PORT: "8081"
       BACKEND_DB: /data/backend.sqlite
@@ -29,7 +29,7 @@ services:
         YANDEX_METRIKA_ENABLED: ${YANDEX_METRIKA_ENABLED:-false}
     container_name: so1-formatter-converter-frontend
     ports:
-      - "127.0.0.1:${APP_PORT:-8080}:80"
+      - "${APP_PORT:-8080}:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
     image: grafana/grafana:11.5.2
     container_name: so1-formatter-converter-grafana
     ports:
-      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+      - "${GRAFANA_PORT:-3000}:3000"
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
