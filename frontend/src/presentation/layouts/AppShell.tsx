@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
  * Imports from presentation
  */
 import { useEmbed } from '@presentation/embed/useEmbed';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { useMediaQuery } from '@presentation/hooks/useMediaQuery';
 import { usePersistedWindowSize } from '@presentation/hooks/usePersistedWindowSize';
 import { Footer } from '@presentation/layouts/Footer';
@@ -24,6 +25,7 @@ interface AppShellProps {
  */
 export function AppShell({ children }: AppShellProps) {
   const { isEmbed } = useEmbed();
+  const { t } = useLocale();
 
   usePageMeta();
   const isPhone = useMediaQuery('(max-width: 767.98px)');
@@ -33,7 +35,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="app-stage">
       <a className="skip-link" href="#main">
-        Skip to content
+        {t('skip')}
       </a>
       <div
         className={`term-window ${isPhone || isEmbed ? 'term-window--phone' : ''}`.trim()}
@@ -67,7 +69,7 @@ export function AppShell({ children }: AppShellProps) {
           <button
             type="button"
             className="term-window__grip"
-            aria-label="Resize window"
+            aria-label={t('resize')}
             onPointerDown={onGripPointerDown}
           />
         ) : null}

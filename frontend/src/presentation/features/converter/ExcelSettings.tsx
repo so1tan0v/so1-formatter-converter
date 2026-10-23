@@ -11,10 +11,12 @@ import {
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { usePanelOpen } from '@presentation/hooks/usePanelOpen';
+import { useLocale } from '@presentation/i18n/useLocale';
 
 interface ExcelSettingsProps {
   options: ExcelBuildOptions;
   onChange: (options: ExcelBuildOptions) => void;
+  mode?: 'write' | 'read';
 }
 
 /**
@@ -23,8 +25,13 @@ interface ExcelSettingsProps {
  * @param options Текущие параметры
  * @param onChange Сохраняет измененные параметры
  */
-export function ExcelSettings({ options, onChange }: ExcelSettingsProps) {
-  const panel = usePanelOpen('excel');
+export function ExcelSettings({
+  options,
+  onChange,
+  mode = 'write',
+}: ExcelSettingsProps) {
+  const { t } = useLocale();
+  const panel = usePanelOpen(mode === 'read' ? 'excel-read' : 'excel');
 
   const patch = <Key extends keyof ExcelBuildOptions>(
     key: Key,
@@ -35,7 +42,7 @@ export function ExcelSettings({ options, onChange }: ExcelSettingsProps) {
 
   return (
     <AsciiFrame
-      title="Settings"
+      title={t('settings')}
       hint="Excel"
       collapsed={!panel.open}
       actions={
@@ -46,86 +53,99 @@ export function ExcelSettings({ options, onChange }: ExcelSettingsProps) {
             aria-expanded={panel.open}
             onClick={() => panel.setOpen(!panel.open)}
           >
-            {panel.open ? '"Hide"' : '"Show"'}
+            {`"${panel.open ? t('hide') : t('show')}"`}
           </button>
           <button
             type="button"
             className="tui-inline-cmd"
             onClick={() => onChange({ ...DEFAULT_EXCEL_OPTIONS })}
           >
-            &quot;Reset&quot;
+            {`"${t('reset')}"`}
           </button>
         </>
       }
     >
       <div className="tui-fields">
-        <label className="tui-check">
-          <input
-            type="checkbox"
-            checked={options.flatten}
-            onChange={(event) => patch('flatten', event.target.checked)}
-          />
-          <span>Flatten nested</span>
-        </label>
-        <label className="tui-check">
-          <input
-            type="checkbox"
-            checked={options.keyColumn}
-            onChange={(event) => patch('keyColumn', event.target.checked)}
-          />
-          <span>Key column</span>
-        </label>
+        {mode === 'write' ? (
+          <>
+            <label className="tui-check">
+              <input
+                type="checkbox"
+                checked={options.flatten}
+                onChange={(event) => patch('flatten', event.target.checked)}
+              />
+              <span>{t('excel.flatten')}</span>
+            </label>
+            <label className="tui-check">
+              <input
+                type="checkbox"
+                checked={options.keyColumn}
+                onChange={(event) => patch('keyColumn', event.target.checked)}
+              />
+              <span>{t('excel.keyColumn')}</span>
+            </label>
+          </>
+        ) : null}
         <label className="tui-check">
           <input
             type="checkbox"
             checked={options.header}
             onChange={(event) => patch('header', event.target.checked)}
           />
-          <span>Header row</span>
+          <span>{t('excel.header')}</span>
         </label>
-        <label className="tui-field">
-          <span className="tui-field__name">Nulls</span>
-          <select
-            className="tui-select"
-            value={options.nulls}
-            onChange={(event) =>
-              patch('nulls', event.target.value === 'null' ? 'null' : 'empty')
-            }
-          >
-            <option value="empty">Empty</option>
-            <option value="null">null</option>
-          </select>
-        </label>
-        <label className="tui-field">
-          <span className="tui-field__name">Booleans</span>
-          <select
-            className="tui-select"
-            value={options.booleans}
-            onChange={(event) =>
-              patch(
-                'booleans',
-                event.target.value === 'one-zero' ? 'one-zero' : 'true-false',
-              )
-            }
-          >
-            <option value="true-false">TRUE / FALSE</option>
-            <option value="one-zero">1 / 0</option>
-          </select>
-        </label>
-        <label className="tui-field">
-          <span className="tui-field__name">Arrays</span>
-          <select
-            className="tui-select"
-            value={options.arrays}
-            onChange={(event) =>
-              patch('arrays', arrayStyle(event.target.value))
-            }
-          >
-            <option value="json">JSON</option>
-            <option value="join">Join</option>
-            <option value="expand">Expand</option>
-          </select>
-        </label>
+        {mode === 'write' ? (
+          <>
+            <label className="tui-field">
+              <span className="tui-field__name">{t('excel.nulls')}</span>
+              <select
+                className="tui-select"
+                value={options.nulls}
+                onChange={(event) =>
+                  patch(
+                    'nulls',
+                    event.target.value === 'null' ? 'null' : 'empty',
+                  )
+                }
+              >
+                <option value="empty">{t('excel.empty')}</option>
+                <option value="null">null</option>
+              </select>
+            </label>
+            <label className="tui-field">
+              <span className="tui-field__name">{t('excel.booleans')}</span>
+              <select
+                className="tui-select"
+                value={options.booleans}
+                onChange={(event) =>
+                  patch(
+                    'booleans',
+                    event.target.value === 'one-zero'
+                      ? 'one-zero'
+                      : 'true-false',
+                  )
+                }
+              >
+                <option value="true-false">TRUE / FALSE</option>
+                <option value="one-zero">1 / 0</option>
+              </select>
+            </label>
+            <label className="tui-field">
+              <span className="tui-field__name">{t('excel.arrays')}</span>
+              <select
+                className="tui-select"
+                value={options.arrays}
+                onChange={(event) =>
+                  patch('arrays', arrayStyle(event.target.value))
+                }
+              >
+                <option value="json">JSON</option>
+                <option value="join">{t('excel.join')}</option>
+                <option value="expand">{t('excel.expand')}</option>
+              </select>
+            </label>
+          </>
+        ) : null}
       </div>
     </AsciiFrame>
   );

@@ -1,0 +1,234 @@
+{
+  "group": {
+    "data": "Данные",
+    "query": "Запросы",
+    "markup": "Разметка"
+  },
+  "locale": {
+    "label": "Язык"
+  },
+  "skip": "К содержимому",
+  "resize": "Размер окна",
+  "modes": "Режимы",
+  "commands": "Команды",
+  "input": "Ввод",
+  "output": "Вывод",
+  "error": "Ошибка",
+  "formatted": "Результат",
+  "preview": "Просмотр",
+  "diff": "Сравнение",
+  "settings": "Настройки",
+  "show": "Показать",
+  "hide": "Скрыть",
+  "reset": "Сброс",
+  "options": "Ещё",
+  "convert": "Конверт",
+  "format": "Формат",
+  "render": "Показ",
+  "copy": "Копия",
+  "download": "Скачать",
+  "swap": "Обмен",
+  "open": "Открыть",
+  "example": "Пример",
+  "view": "Смотреть",
+  "fullscreen": "Во весь экран",
+  "exit": "Выход",
+  "fast": "Быстро",
+  "formatter": "Форматтер",
+  "converter": "Конвертер",
+  "viewer": "Просмотр",
+  "differ": "Сравнение",
+  "recent": "Недавние",
+  "pick": "выбрать",
+  "empty": "пусто",
+  "openFile": "Открыть файл",
+  "recentInputs": "Недавние вводы",
+  "unknownFormatter": "Неизвестный форматтер.",
+  "unknownConverter": "Неизвестный конвертер.",
+  "unknownViewer": "Неизвестный просмотр.",
+  "notReady": "{{label}} ещё не готов.",
+  "status": "Статус",
+  "soon": "скоро",
+  "conversionFollows": "Текст преобразуется сразу.",
+  "formattingFollows": "Текст форматируется сразу. Правка здесь меняет ввод.",
+  "previewEmpty": "Просмотр появится после «Показ».",
+  "excelBuildError": "Не удалось собрать файл Excel",
+  "excelReadError": "Не удалось прочитать файл Excel",
+  "excelLegacy": "Excel → JSON читает книги .xlsx",
+  "exitLabel": "Выход:",
+  "exitKeys": "Ctrl+C / ⌘C",
+  "telegram": "Telegram:",
+  "site": "Сайт:",
+  "powered": "На базе:",
+  "lineNumber": "Строка {{line}}",
+  "previewTitle": "Просмотр — {{label}}",
+  "markdownPreview": "Просмотр Markdown",
+  "sideBySide": "рядом",
+  "language": "Язык",
+  "ignoreWhitespace": "Игнорировать пробелы",
+  "collapseUnchanged": "Свернуть одинаковое",
+  "original": "Было",
+  "modified": "Стало",
+  "inputAria": "Ввод {{label}}",
+  "outputAria": "Вывод {{label}}",
+  "formattedAria": "Результат {{label}}",
+  "formatterAria": "Форматтер",
+  "plain": "Текст",
+  "lines_one": "{{count}} строка",
+  "lines_few": "{{count}} строки",
+  "lines_many": "{{count}} строк",
+  "lines_other": "{{count}} строк",
+  "excel": {
+    "flatten": "Плоские поля",
+    "keyColumn": "Колонка ключа",
+    "header": "Строка заголовка",
+    "nulls": "Пустые",
+    "empty": "Пусто",
+    "booleans": "Логические",
+    "arrays": "Массивы",
+    "join": "Склеить",
+    "expand": "Развернуть"
+  },
+  "opt": {
+    "layout": "Вид",
+    "indent": "Отступ",
+    "style": "Стиль",
+    "pretty": "С отступами",
+    "oneLine": "Одна строка",
+    "escaped": "Экранированная строка",
+    "keys": "Ключи",
+    "path": "Путь",
+    "sql": "SQL",
+    "keywords": "Слова",
+    "upper": "Верхний",
+    "lower": "Нижний",
+    "asIs": "Как есть",
+    "markup": "Разметка",
+    "attributes": "Атрибуты",
+    "auto": "Авто",
+    "eachAttribute": "Каждый атрибут",
+    "aligned": "Выровнять",
+    "expandMultiline": "Развернуть",
+    "alignMultiple": "Несколько в ряд",
+    "preserve": "Как было",
+    "preserveAligned": "Как было, выровнять",
+    "more": "Ещё",
+    "minAttributes": "Мин. атрибутов",
+    "lineWidth": "Ширина строки",
+    "scripts": "Скрипты",
+    "normal": "Обычно",
+    "keep": "Сохранить",
+    "separate": "Отдельно",
+    "templates": "Шаблоны",
+    "off": "Выкл",
+    "maxBlank": "Макс. пустых строк",
+    "indentContents": "Отступ содержимого",
+    "indentHead": "Отступ head",
+    "indentBody": "Отступ body",
+    "keepNewlines": "Сохранять переносы",
+    "endNewline": "Перенос в конце",
+    "blankBlocks": "Пустая строка перед блоками",
+    "indentHandlebars": "Отступ Handlebars",
+    "inlineCustom": "Кастомные теги в строку",
+    "formatPre": "Форматировать pre",
+    "sortKeys": "Сортировать ключи",
+    "dropNull": "Убрать null",
+    "escapeUnicode": "Экранировать юникод",
+    "quotes": "Кавычки",
+    "null": "Null",
+    "forceQuotes": "Всегда кавычки",
+    "startDoc": "Начать с ---",
+    "endDoc": "Закончить ..."
+  },
+  "indent": {
+    "1": "1 пробел",
+    "2": "2 пробела",
+    "3": "3 пробела",
+    "4": "4 пробела",
+    "tab": "таб"
+  },
+  "meta": {
+    "site": {
+      "title": "Форматтер JSON, YAML, SQL, HTML и XML",
+      "description": "Форматирование JSON, YAML, SQL, HTML и XML. Сравнение текстов и файлов. Конвертация и просмотр Markdown, Jira, HTML, JSON и YAML в браузере."
+    },
+    "formatter": {
+      "json": {
+        "title": "Форматтер JSON",
+        "description": "Развернуть, сжать и экранировать JSON, включая литералы объектов JavaScript."
+      },
+      "yaml": {
+        "title": "Форматтер YAML",
+        "description": "Форматирование и сжатие YAML в браузере."
+      },
+      "sql": {
+        "title": "Форматтер SQL",
+        "description": "Форматирование SQL с единым регистром слов и отступами."
+      },
+      "html": {
+        "title": "Форматтер HTML",
+        "description": "Форматирование HTML: атрибуты, отступы и шаблоны."
+      },
+      "xml": {
+        "title": "Форматтер XML",
+        "description": "Форматирование и сжатие XML в браузере."
+      }
+    },
+    "converter": {
+      "markdownJira": {
+        "title": "Markdown в Jira",
+        "description": "Конвертация Markdown в разметку Jira."
+      },
+      "jiraMarkdown": {
+        "title": "Jira в Markdown",
+        "description": "Конвертация разметки Jira в Markdown."
+      },
+      "markdownHtml": {
+        "title": "Markdown в HTML",
+        "description": "Конвертация Markdown в HTML."
+      },
+      "htmlMarkdown": {
+        "title": "HTML в Markdown",
+        "description": "Конвертация HTML в Markdown."
+      },
+      "jsonYaml": {
+        "title": "JSON в YAML",
+        "description": "Конвертация JSON в YAML."
+      },
+      "yamlJson": {
+        "title": "YAML в JSON",
+        "description": "Конвертация YAML в JSON."
+      },
+      "jsonSql": {
+        "title": "JSON в SQL",
+        "description": "Конвертация строк JSON в SQL INSERT."
+      },
+      "sqlJson": {
+        "title": "SQL в JSON",
+        "description": "Конвертация SQL INSERT в JSON."
+      },
+      "jsonExcel": {
+        "title": "JSON в Excel",
+        "description": "Конвертация строк JSON в книгу .xlsx с заголовками из полей объектов."
+      },
+      "excelJson": {
+        "title": "Excel в JSON",
+        "description": "Конвертация листа .xlsx, TSV или CSV в строки JSON."
+      }
+    },
+    "viewer": {
+      "markdown": {
+        "title": "Просмотр Markdown",
+        "description": "Просмотр Markdown с подсветкой блоков кода."
+      },
+      "jira": {
+        "title": "Просмотр Jira",
+        "description": "Просмотр разметки Jira как HTML."
+      }
+    },
+    "differ": {
+      "title": "Сравнение текста",
+      "description": "Сравнение двух текстов или файлов рядом, с общей прокруткой."
+    }
+  }
+}

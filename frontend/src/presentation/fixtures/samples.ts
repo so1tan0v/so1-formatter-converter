@@ -102,6 +102,10 @@ const ready = true;
 `,
   'json-sql': JSON_SAMPLE,
   'json-excel': JSON_SAMPLE,
+  'excel-json': `id\tname\tactive
+1\tAda\tTRUE
+2\tGrace\tFALSE
+`,
   'sql-json': `INSERT INTO "data" ("id", "name", "active")
 VALUES
   (1, 'Ada', TRUE),

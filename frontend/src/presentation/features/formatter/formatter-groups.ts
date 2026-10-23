@@ -4,6 +4,7 @@
 import type { FormatterId } from '@domain/formatter/types';
 
 export interface FormatterGroup {
+  id: 'data' | 'query' | 'markup';
   label: string;
   ids: FormatterId[];
 }
@@ -12,9 +13,9 @@ export interface FormatterGroup {
  * Группы типов форматтера в шапке: данные, запрос и разметка
  */
 export const FORMATTER_GROUPS: FormatterGroup[] = [
-  { label: 'Data', ids: ['json', 'yaml'] },
-  { label: 'Query', ids: ['sql'] },
-  { label: 'Markup', ids: ['html', 'xml'] },
+  { id: 'data', label: 'Data', ids: ['json', 'yaml'] },
+  { id: 'query', label: 'Query', ids: ['sql'] },
+  { id: 'markup', label: 'Markup', ids: ['html', 'xml'] },
 ];
 
 /**

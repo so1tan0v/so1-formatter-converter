@@ -11,6 +11,7 @@ export const CONVERTER_IDS = [
   'json-sql',
   'sql-json',
   'json-excel',
+  'excel-json',
 ] as const;
 
 export type ConverterId = (typeof CONVERTER_IDS)[number];

@@ -17,6 +17,7 @@ import { CONVERTER_IDS, type ConverterId } from '@domain/converter/types';
  * Imports from presentation
  */
 import { SoonPanel } from '@presentation/components/SoonPanel';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { ConverterWorkspace } from '@presentation/features/converter/ConverterWorkspace';
 import { Redirect } from '@presentation/routing/Redirect';
 
@@ -25,6 +26,7 @@ import { Redirect } from '@presentation/routing/Redirect';
  */
 export function ConverterPage() {
   const { type } = useParams();
+  const { t } = useLocale();
   const fallback = converterRegistry.list().find((item) => item.available);
   const fallbackPath = `/converter/${fallback?.id ?? 'markdown-jira'}`;
 
@@ -45,9 +47,9 @@ export function ConverterPage() {
   if (!converter.available) {
     return (
       <SoonPanel
-        title="Converter"
+        title={t('converter')}
         hint={converter.label}
-        message={`${converter.label} is not ready yet.`}
+        message={t('notReady', { label: converter.label })}
       />
     );
   }

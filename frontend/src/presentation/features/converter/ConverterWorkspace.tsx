@@ -23,11 +23,16 @@ import type { ConverterFormat, ConverterId } from '@domain/converter/types';
 /**
  * Imports from infrastructure
  */
+import { trackAction } from '@infrastructure/analytics/metrics';
 import {
   excelTableText,
   jsonToExcelFile,
   readExcelTable,
 } from '@infrastructure/converters/json-excel/json-to-excel';
+import {
+  isWorkbookName,
+  xlsxBytesToTable,
+} from '@infrastructure/converters/json-excel/xlsx-read';
 
 /**
  * Imports from presentation
@@ -49,6 +54,7 @@ import {
   readConverterHandoff,
 } from '@presentation/features/converter/pairs';
 import { downloadBytes, fileNameFor } from '@presentation/files/text-file';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { CONVERT_SAMPLES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
@@ -80,6 +86,7 @@ interface ConverterFormValues {
  */
 export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
   const dispatch = useAppDispatch();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
   const output = useAppSelector((state) => state.workspace.output);
@@ -179,7 +186,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
   }, [converterId, dispatch, output, sample]);
 
   if (!converter) {
-    return <p className="term-error">Unknown converter.</p>;
+    return <p className="term-error">{t('unknownConverter')}</p>;
   }
 
   const excelTable =
@@ -212,7 +219,9 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
           converterRegistry,
           converterId,
           values.source,
-          converterId === 'json-excel' ? { ...excelOptionsRef.current } : {},
+          converterId === 'json-excel' || converterId === 'excel-json'
+            ? { ...excelOptionsRef.current }
+            : {},
         );
 
         if (result.ok) {
@@ -232,13 +241,14 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
         <Form className="formatter-workspace">
           <DebouncedSubmit
             signature={
-              converter.id === 'json-excel'
+              converter.id === 'json-excel' || converter.id === 'excel-json'
                 ? `${values.source}\u0000${JSON.stringify(excelOptions)}`
                 : values.source
             }
           />
-          {converter.id === 'json-excel' ? (
+          {converter.id === 'json-excel' || converter.id === 'excel-json' ? (
             <ExcelSettings
+              mode={converter.id === 'excel-json' ? 'read' : 'write'}
               options={excelOptions}
               onChange={(next) => {
                 excelOptionsRef.current = next;
@@ -249,12 +259,53 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
           ) : null}
           <div className="formatter-workspace__panes">
             <AsciiFrame
-              title="Input"
+              title={t('input')}
               hint={converter.sourceLabel}
               fill
               actions={
                 <>
                   <FileOpenButton
+                    onLoadFile={async (file) => {
+                      if (converter.id !== 'excel-json') {
+                        return false;
+                      }
+
+                      if (
+                        /\.xls$/i.test(file.name) &&
+                        !isWorkbookName(file.name)
+                      ) {
+                        dispatch(setError(t('excelLegacy')));
+
+                        return true;
+                      }
+
+                      if (!isWorkbookName(file.name)) {
+                        return false;
+                      }
+
+                      try {
+                        const table = await xlsxBytesToTable(
+                          new Uint8Array(await file.arrayBuffer()),
+                        );
+                        const text = excelTableText(table);
+
+                        rememberNext.current = true;
+                        void setFieldValue('source', text);
+                        dispatch(setSource(text));
+                        dispatch(clearResult());
+                        setOpenedName(file.name);
+                      } catch (cause) {
+                        dispatch(
+                          setError(
+                            cause instanceof Error
+                              ? cause.message
+                              : t('excelReadError'),
+                          ),
+                        );
+                      }
+
+                      return true;
+                    }}
                     onLoad={(text, fileName) => {
                       rememberNext.current = true;
                       void setFieldValue('source', text);
@@ -292,7 +343,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
               <CodeEditor
                 value={values.source}
                 language={inputLanguage}
-                ariaLabel={`${converter.sourceLabel} input`}
+                ariaLabel={t('inputAria', { label: converter.sourceLabel })}
                 onChange={(next) => {
                   void setFieldValue('source', next);
                   dispatch(setSource(next));
@@ -306,6 +357,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                   type="button"
                   className="tui-inline-cmd tui-inline-cmd--block"
                   onClick={() => {
+                    trackAction('swap');
                     navigate(
                       {
                         pathname: `/converter/${reverseId}`,
@@ -320,7 +372,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                     );
                   }}
                 >
-                  &quot;Swap&quot;
+                  {`"${t('swap')}"`}
                 </button>
               ) : null}
               <button
@@ -328,9 +380,10 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                 className="tui-inline-cmd tui-inline-cmd--block"
                 onClick={() => {
                   rememberNext.current = true;
+                  trackAction('convert');
                 }}
               >
-                &quot;Convert&quot;
+                {`"${t('convert')}"`}
               </button>
               <span
                 className="formatter-workspace__gutter-arrow"
@@ -341,7 +394,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
             </div>
 
             <AsciiFrame
-              title={error ? 'Error' : 'Output'}
+              title={error ? t('error') : t('output')}
               hint={error ? undefined : converter.targetLabel}
               fill
               actions={
@@ -353,6 +406,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                       disabled={!output || Boolean(error)}
                       onClick={() => {
                         try {
+                          trackAction('download');
                           downloadBytes(
                             fileNameFor(openedName, 'output', 'xlsx'),
                             jsonToExcelFile(values.source, excelOptions),
@@ -363,13 +417,13 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                             setError(
                               cause instanceof Error
                                 ? cause.message
-                                : 'Cannot build the Excel file',
+                                : t('excelBuildError'),
                             ),
                           );
                         }
                       }}
                     >
-                      &quot;Download&quot;
+                      {`"${t('download')}"`}
                     </button>
                   ) : (
                     <FileDownloadButton
@@ -388,7 +442,7 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                     disabled={!output || Boolean(error)}
                     onClick={() => dispatchTuiCommand('copy')}
                   >
-                    &quot;Copy&quot;
+                    {`"${t('copy')}"`}
                   </button>
                 </>
               }
@@ -398,7 +452,9 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                   <CodeEditor
                     value={error}
                     language={outputLanguage}
-                    ariaLabel={`${converter.targetLabel} output`}
+                    ariaLabel={t('outputAria', {
+                      label: converter.targetLabel,
+                    })}
                     readOnly
                   />
                 ) : excelTable ? (
@@ -407,13 +463,15 @@ export function ConverterWorkspace({ converterId }: ConverterWorkspaceProps) {
                   <CodeEditor
                     value={output}
                     language={outputLanguage}
-                    ariaLabel={`${converter.targetLabel} output`}
+                    ariaLabel={t('outputAria', {
+                      label: converter.targetLabel,
+                    })}
                     readOnly
                   />
                 )}
                 {!output && !error ? (
                   <p className="formatter-workspace__empty">
-                    Conversion follows the text.
+                    {t('conversionFollows')}
                   </p>
                 ) : null}
               </div>

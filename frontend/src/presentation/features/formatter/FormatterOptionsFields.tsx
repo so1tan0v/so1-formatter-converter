@@ -5,6 +5,11 @@ import { Field, useFormikContext } from 'formik';
 import type { ReactNode } from 'react';
 
 /**
+ * Imports from presentation
+ */
+import { useLocale } from '@presentation/i18n/useLocale';
+
+/**
  * Imports from domain
  */
 import {
@@ -18,7 +23,7 @@ import {
   XML_WRAP_ATTRIBUTES,
 } from '@domain/formatter/types';
 import type { FormatterId, HtmlTemplating } from '@domain/formatter/types';
-import { INDENT_STYLE_LABELS, INDENT_STYLES } from '@domain/shared/indent';
+import { INDENT_STYLES, type IndentStyle } from '@domain/shared/indent';
 
 interface FormatterOptionsFieldsProps {
   formatterId: FormatterId;
@@ -27,44 +32,52 @@ interface FormatterOptionsFieldsProps {
 
 const KEYWORD_CASE_LABELS: Record<(typeof SQL_KEYWORD_CASES)[number], string> =
   {
-    upper: 'Upper',
-    lower: 'Lower',
-    preserve: 'As is',
+    upper: 'opt.upper',
+    lower: 'opt.lower',
+    preserve: 'opt.asIs',
   };
 
 const JSON_KEY_CASE_LABELS: Record<(typeof JSON_KEY_CASES)[number], string> = {
-  'as-is': 'As is',
+  'as-is': 'opt.asIs',
   snake: 'snake_case',
   camel: 'camelCase',
   pascal: 'CamelCase',
 };
 
 const MODE_LABELS: Record<(typeof OUTPUT_MODES)[number], string> = {
-  pretty: 'Pretty',
-  compact: 'One line',
-  escaped: 'Escaped string',
+  pretty: 'opt.pretty',
+  compact: 'opt.oneLine',
+  escaped: 'opt.escaped',
 };
 
 const WRAP_ATTRIBUTE_LABELS: Record<
   (typeof HTML_WRAP_ATTRIBUTES)[number],
   string
 > = {
-  auto: 'Auto',
-  force: 'Each attribute',
-  'force-aligned': 'Aligned',
-  'force-expand-multiline': 'Expand multiline',
-  'aligned-multiple': 'Align multiple',
-  preserve: 'Preserve',
-  'preserve-aligned': 'Preserve aligned',
+  auto: 'opt.auto',
+  force: 'opt.eachAttribute',
+  'force-aligned': 'opt.aligned',
+  'force-expand-multiline': 'opt.expandMultiline',
+  'aligned-multiple': 'opt.alignMultiple',
+  preserve: 'opt.preserve',
+  'preserve-aligned': 'opt.preserveAligned',
 };
 
 const SCRIPT_INDENT_LABELS: Record<
   (typeof HTML_SCRIPT_INDENTS)[number],
   string
 > = {
-  normal: 'Normal',
-  keep: 'Keep',
-  separate: 'Separate',
+  normal: 'opt.normal',
+  keep: 'opt.keep',
+  separate: 'opt.separate',
+};
+
+const INDENT_KEYS: Record<IndentStyle, string> = {
+  '1-space': 'indent.1',
+  '2-space': 'indent.2',
+  '3-space': 'indent.3',
+  '4-space': 'indent.4',
+  tab: 'indent.tab',
 };
 
 /**
@@ -77,15 +90,17 @@ export function FormatterOptionsFields({
   formatterId,
   advanced,
 }: FormatterOptionsFieldsProps) {
+  const { t } = useLocale();
+
   return (
     <div className="tui-option-groups">
-      <OptionGroup title="Layout">
+      <OptionGroup title={t('opt.layout')}>
         <label className="tui-field" htmlFor="indent">
-          <span className="tui-field__name">Indent</span>
+          <span className="tui-field__name">{t('opt.indent')}</span>
           <Field as="select" id="indent" name="indent" className="tui-select">
             {INDENT_STYLES.map((style) => (
               <option key={style} value={style}>
-                {INDENT_STYLE_LABELS[style]}
+                {t(INDENT_KEYS[style])}
               </option>
             ))}
           </Field>
@@ -94,12 +109,12 @@ export function FormatterOptionsFields({
         formatterId === 'yaml' ||
         formatterId === 'xml' ? (
           <label className="tui-field" htmlFor="mode">
-            <span className="tui-field__name">Style</span>
+            <span className="tui-field__name">{t('opt.style')}</span>
             <Field as="select" id="mode" name="mode" className="tui-select">
               {(formatterId === 'xml' ? XML_OUTPUT_MODES : OUTPUT_MODES).map(
                 (mode) => (
                   <option key={mode} value={mode}>
-                    {MODE_LABELS[mode]}
+                    {t(MODE_LABELS[mode])}
                   </option>
                 ),
               )}
@@ -109,11 +124,11 @@ export function FormatterOptionsFields({
       </OptionGroup>
 
       {formatterId === 'json' || formatterId === 'yaml' ? (
-        <OptionGroup title="Keys">
+        <OptionGroup title={t('opt.keys')}>
           <KeyCaseField />
           {formatterId === 'json' ? (
             <label className="tui-field" htmlFor="query">
-              <span className="tui-field__name">Path</span>
+              <span className="tui-field__name">{t('opt.path')}</span>
               <Field
                 id="query"
                 name="query"
@@ -127,46 +142,46 @@ export function FormatterOptionsFields({
       ) : null}
 
       {formatterId === 'sql' ? (
-        <OptionGroup title="SQL">
+        <OptionGroup title={t('opt.sql')}>
           <SqlExtraFields />
         </OptionGroup>
       ) : null}
 
       {formatterId === 'html' ? (
-        <OptionGroup title="Markup">
+        <OptionGroup title={t('opt.markup')}>
           <HtmlAttributeField />
         </OptionGroup>
       ) : null}
 
       {formatterId === 'xml' ? (
-        <OptionGroup title="Markup">
+        <OptionGroup title={t('opt.markup')}>
           <XmlAttributeField />
         </OptionGroup>
       ) : null}
 
       {advanced && formatterId === 'json' ? (
-        <OptionGroup title="More">
+        <OptionGroup title={t('opt.more')}>
           <JsonAdvancedFields />
         </OptionGroup>
       ) : null}
 
       {advanced && formatterId === 'yaml' ? (
-        <OptionGroup title="More">
+        <OptionGroup title={t('opt.more')}>
           <YamlAdvancedFields />
         </OptionGroup>
       ) : null}
 
       {advanced && formatterId === 'html' ? (
-        <OptionGroup title="More">
+        <OptionGroup title={t('opt.more')}>
           <HtmlAdvancedFields />
         </OptionGroup>
       ) : null}
 
       {advanced && formatterId === 'xml' ? (
-        <OptionGroup title="More">
+        <OptionGroup title={t('opt.more')}>
           <label className="tui-check">
             <Field type="checkbox" name="endWithNewline" />
-            <span>End with newline</span>
+            <span>{t('opt.endNewline')}</span>
           </label>
         </OptionGroup>
       ) : null}
@@ -190,9 +205,11 @@ function OptionGroup({
 }
 
 function XmlAttributeField() {
+  const { t } = useLocale();
+
   return (
     <label className="tui-field" htmlFor="wrapAttributes">
-      <span className="tui-field__name">Attributes</span>
+      <span className="tui-field__name">{t('opt.attributes')}</span>
       <Field
         as="select"
         id="wrapAttributes"
@@ -201,7 +218,7 @@ function XmlAttributeField() {
       >
         {XML_WRAP_ATTRIBUTES.map((value) => (
           <option key={value} value={value}>
-            {WRAP_ATTRIBUTE_LABELS[value]}
+            {t(WRAP_ATTRIBUTE_LABELS[value])}
           </option>
         ))}
       </Field>
@@ -210,9 +227,11 @@ function XmlAttributeField() {
 }
 
 function HtmlAttributeField() {
+  const { t } = useLocale();
+
   return (
     <label className="tui-field" htmlFor="wrapAttributes">
-      <span className="tui-field__name">Attributes</span>
+      <span className="tui-field__name">{t('opt.attributes')}</span>
       <Field
         as="select"
         id="wrapAttributes"
@@ -221,7 +240,7 @@ function HtmlAttributeField() {
       >
         {HTML_WRAP_ATTRIBUTES.map((value) => (
           <option key={value} value={value}>
-            {WRAP_ATTRIBUTE_LABELS[value]}
+            {t(WRAP_ATTRIBUTE_LABELS[value])}
           </option>
         ))}
       </Field>
@@ -230,13 +249,14 @@ function HtmlAttributeField() {
 }
 
 function HtmlAdvancedFields() {
+  const { t } = useLocale();
   const { values } = useFormikContext<{ templating: HtmlTemplating }>();
   const templatesOff = values.templating === 'none';
 
   return (
     <>
       <label className="tui-field" htmlFor="wrapAttributesMin">
-        <span className="tui-field__name">Min attributes</span>
+        <span className="tui-field__name">{t('opt.minAttributes')}</span>
         <Field
           id="wrapAttributesMin"
           name="wrapAttributesMin"
@@ -247,7 +267,7 @@ function HtmlAdvancedFields() {
         />
       </label>
       <label className="tui-field" htmlFor="wrapLineLength">
-        <span className="tui-field__name">Line width</span>
+        <span className="tui-field__name">{t('opt.lineWidth')}</span>
         <Field
           id="wrapLineLength"
           name="wrapLineLength"
@@ -258,7 +278,7 @@ function HtmlAdvancedFields() {
         />
       </label>
       <label className="tui-field" htmlFor="indentScripts">
-        <span className="tui-field__name">Scripts</span>
+        <span className="tui-field__name">{t('opt.scripts')}</span>
         <Field
           as="select"
           id="indentScripts"
@@ -267,13 +287,13 @@ function HtmlAdvancedFields() {
         >
           {HTML_SCRIPT_INDENTS.map((value) => (
             <option key={value} value={value}>
-              {SCRIPT_INDENT_LABELS[value]}
+              {t(SCRIPT_INDENT_LABELS[value])}
             </option>
           ))}
         </Field>
       </label>
       <label className="tui-field" htmlFor="templating">
-        <span className="tui-field__name">Templates</span>
+        <span className="tui-field__name">{t('opt.templates')}</span>
         <Field
           as="select"
           id="templating"
@@ -282,13 +302,13 @@ function HtmlAdvancedFields() {
         >
           {HTML_TEMPLATING.map((value) => (
             <option key={value} value={value}>
-              {value === 'auto' ? 'Auto' : 'Off'}
+              {value === 'auto' ? t('opt.auto') : t('opt.off')}
             </option>
           ))}
         </Field>
       </label>
       <label className="tui-field" htmlFor="maxPreserveNewlines">
-        <span className="tui-field__name">Max blank lines</span>
+        <span className="tui-field__name">{t('opt.maxBlank')}</span>
         <Field
           id="maxPreserveNewlines"
           name="maxPreserveNewlines"
@@ -300,27 +320,27 @@ function HtmlAdvancedFields() {
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="indentInnerHtml" />
-        <span>Indent contents</span>
+        <span>{t('opt.indentContents')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="indentHead" />
-        <span>Indent head</span>
+        <span>{t('opt.indentHead')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="indentBody" />
-        <span>Indent body</span>
+        <span>{t('opt.indentBody')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="preserveNewlines" />
-        <span>Keep newlines</span>
+        <span>{t('opt.keepNewlines')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="endWithNewline" />
-        <span>End with newline</span>
+        <span>{t('opt.endNewline')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="extraLiners" />
-        <span>Blank line before blocks</span>
+        <span>{t('opt.blankBlocks')}</span>
       </label>
       <label className="tui-check">
         <Field
@@ -328,24 +348,26 @@ function HtmlAdvancedFields() {
           name="indentHandlebars"
           disabled={templatesOff}
         />
-        <span>Indent Handlebars</span>
+        <span>{t('opt.indentHandlebars')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="inlineCustomElements" />
-        <span>Inline custom elements</span>
+        <span>{t('opt.inlineCustom')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="formatPre" />
-        <span>Format pre</span>
+        <span>{t('opt.formatPre')}</span>
       </label>
     </>
   );
 }
 
 function SqlExtraFields() {
+  const { t } = useLocale();
+
   return (
     <label className="tui-field" htmlFor="keywordCase">
-      <span className="tui-field__name">Keywords</span>
+      <span className="tui-field__name">{t('opt.keywords')}</span>
       <Field
         as="select"
         id="keywordCase"
@@ -354,7 +376,7 @@ function SqlExtraFields() {
       >
         {SQL_KEYWORD_CASES.map((value) => (
           <option key={value} value={value}>
-            {KEYWORD_CASE_LABELS[value]}
+            {t(KEYWORD_CASE_LABELS[value])}
           </option>
         ))}
       </Field>
@@ -363,13 +385,17 @@ function SqlExtraFields() {
 }
 
 function KeyCaseField() {
+  const { t } = useLocale();
+
   return (
     <label className="tui-field" htmlFor="keyCase">
-      <span className="tui-field__name">Keys</span>
+      <span className="tui-field__name">{t('opt.keys')}</span>
       <Field as="select" id="keyCase" name="keyCase" className="tui-select">
         {JSON_KEY_CASES.map((value) => (
           <option key={value} value={value}>
-            {JSON_KEY_CASE_LABELS[value]}
+            {value === 'as-is'
+              ? t(JSON_KEY_CASE_LABELS[value])
+              : JSON_KEY_CASE_LABELS[value]}
           </option>
         ))}
       </Field>
@@ -378,41 +404,45 @@ function KeyCaseField() {
 }
 
 function JsonAdvancedFields() {
+  const { t } = useLocale();
+
   return (
     <>
       <label className="tui-check">
         <Field type="checkbox" name="sortKeys" />
-        <span>Sort keys</span>
+        <span>{t('opt.sortKeys')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="dropNulls" />
-        <span>Drop null</span>
+        <span>{t('opt.dropNull')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="escapeUnicode" />
-        <span>Escape unicode</span>
+        <span>{t('opt.escapeUnicode')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="trailingNewline" />
-        <span>End with newline</span>
+        <span>{t('opt.endNewline')}</span>
       </label>
     </>
   );
 }
 
 function YamlAdvancedFields() {
+  const { t } = useLocale();
+
   return (
     <>
       <label className="tui-field" htmlFor="quoting">
-        <span className="tui-field__name">Quotes</span>
+        <span className="tui-field__name">{t('opt.quotes')}</span>
         <Field as="select" id="quoting" name="quoting" className="tui-select">
-          <option value="auto">auto</option>
+          <option value="auto">{t('opt.auto')}</option>
           <option value="single">single</option>
           <option value="double">double</option>
         </Field>
       </label>
       <label className="tui-field" htmlFor="nullStyle">
-        <span className="tui-field__name">Null</span>
+        <span className="tui-field__name">{t('opt.null')}</span>
         <Field
           as="select"
           id="nullStyle"
@@ -421,11 +451,11 @@ function YamlAdvancedFields() {
         >
           <option value="null">null</option>
           <option value="tilde">~</option>
-          <option value="empty">empty</option>
+          <option value="empty">{t('excel.empty')}</option>
         </Field>
       </label>
       <label className="tui-field" htmlFor="lineWidth">
-        <span className="tui-field__name">Line width</span>
+        <span className="tui-field__name">{t('opt.lineWidth')}</span>
         <Field
           id="lineWidth"
           name="lineWidth"
@@ -437,19 +467,19 @@ function YamlAdvancedFields() {
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="sortKeys" />
-        <span>Sort keys</span>
+        <span>{t('opt.sortKeys')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="forceQuotes" />
-        <span>Force quotes</span>
+        <span>{t('opt.forceQuotes')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="documentStart" />
-        <span>Start with ---</span>
+        <span>{t('opt.startDoc')}</span>
       </label>
       <label className="tui-check">
         <Field type="checkbox" name="documentEnd" />
-        <span>End with ...</span>
+        <span>{t('opt.endDoc')}</span>
       </label>
     </>
   );

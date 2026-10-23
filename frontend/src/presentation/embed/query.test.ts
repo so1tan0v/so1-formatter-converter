@@ -14,9 +14,10 @@ import {
 
 describe('readBootAppearance', () => {
   it('detects embed mode and light theme from query', () => {
-    expect(readBootAppearance('?embed=1&theme=light')).toEqual({
+    expect(readBootAppearance('?embed=1&theme=light&lang=ru')).toEqual({
       isEmbed: true,
       scheme: 'light',
+      locale: 'ru',
       themeId: THEME_ID_LIGHT,
     });
   });
@@ -25,6 +26,7 @@ describe('readBootAppearance', () => {
     expect(readBootAppearance('')).toEqual({
       isEmbed: false,
       scheme: null,
+      locale: null,
       themeId: THEME_ID_DARK,
     });
   });

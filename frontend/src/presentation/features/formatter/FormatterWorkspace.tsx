@@ -16,6 +16,11 @@ import { formatterRegistry, historyStore } from '@app/composition';
 import { formatText } from '@application/format-text';
 
 /**
+ * Imports from infrastructure
+ */
+import { trackAction } from '@infrastructure/analytics/metrics';
+
+/**
  * Imports from domain
  */
 import { defaultOptionsFor, type FormatterId } from '@domain/formatter/types';
@@ -56,6 +61,7 @@ import { fileNameFor } from '@presentation/files/text-file';
 import { SAMPLE_SOURCES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { usePanelOpen } from '@presentation/hooks/usePanelOpen';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
 import {
@@ -81,6 +87,7 @@ interface FormatterWorkspaceProps {
  */
 export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   const dispatch = useAppDispatch();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
   const output = useAppSelector((state) => state.workspace.output);
@@ -197,7 +204,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
   );
 
   if (!formatter) {
-    return <p className="term-error">Unknown formatter.</p>;
+    return <p className="term-error">{t('unknownFormatter')}</p>;
   }
 
   return (
@@ -248,7 +255,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
               skip={outputEdit}
             />
             <AsciiFrame
-              title="Settings"
+              title={t('settings')}
               hint={formatter.label}
               collapsed={!settings.open}
               actions={
@@ -259,7 +266,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                     aria-expanded={settings.open}
                     onClick={() => settings.setOpen(!settings.open)}
                   >
-                    {settings.open ? '"Hide"' : '"Show"'}
+                    {`"${settings.open ? t('hide') : t('show')}"`}
                   </button>
                   {formatterHasAdvancedOptions(formatterId) ? (
                     <button
@@ -267,7 +274,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                       className={`tui-inline-cmd ${advanced ? 'is-active' : ''}`.trim()}
                       onClick={() => setAdvanced((current) => !current)}
                     >
-                      &quot;Options&quot;
+                      {`"${t('options')}"`}
                     </button>
                   ) : null}
                   <button
@@ -282,7 +289,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                       });
                     }}
                   >
-                    &quot;Reset&quot;
+                    {`"${t('reset')}"`}
                   </button>
                 </>
               }
@@ -297,7 +304,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
 
             <div className="formatter-workspace__panes">
               <AsciiFrame
-                title="Input"
+                title={t('input')}
                 fill
                 actions={
                   <>
@@ -335,7 +342,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                 <CodeEditor
                   value={values.source}
                   language={inputLanguageFor(formatterId)}
-                  ariaLabel={`${formatter.label} input`}
+                  ariaLabel={t('inputAria', { label: formatter.label })}
                   caret={
                     errorLine && caretToken > 0
                       ? { ...errorLine, token: caretToken }
@@ -354,9 +361,10 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                   className="tui-inline-cmd tui-inline-cmd--block"
                   onClick={() => {
                     rememberNext.current = true;
+                    trackAction('format');
                   }}
                 >
-                  &quot;Format&quot;
+                  {`"${t('format')}"`}
                 </button>
                 <span
                   className="formatter-workspace__gutter-arrow"
@@ -367,7 +375,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
               </div>
 
               <AsciiFrame
-                title={error ? 'Error' : 'Formatted'}
+                title={error ? t('error') : t('formatted')}
                 fill
                 actions={
                   <>
@@ -377,7 +385,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                         className="tui-inline-cmd"
                         onClick={() => setCaretToken(Date.now())}
                       >
-                        {`Line ${errorLine.line}`}
+                        {t('lineNumber', { line: errorLine.line })}
                       </button>
                     ) : null}
                     <button
@@ -386,7 +394,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                       disabled={!output || Boolean(error)}
                       onClick={() => dispatchTuiCommand('copy')}
                     >
-                      &quot;Copy&quot;
+                      {`"${t('copy')}"`}
                     </button>
                     <FileDownloadButton
                       fileName={fileNameFor(
@@ -425,7 +433,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                         navigate('/differ');
                       }}
                     >
-                      &quot;Diff&quot;
+                      {`"${t('diff')}"`}
                     </button>
                     <button
                       type="button"
@@ -452,7 +460,7 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                         });
                       }}
                     >
-                      &quot;View&quot;
+                      {`"${t('view')}"`}
                     </button>
                   </>
                 }
@@ -461,14 +469,13 @@ export function FormatterWorkspace({ formatterId }: FormatterWorkspaceProps) {
                   <CodeEditor
                     value={error ?? output}
                     language={outputLanguageFor(formatterId, Boolean(error))}
-                    ariaLabel={`${formatter.label} formatted`}
+                    ariaLabel={t('formattedAria', { label: formatter.label })}
                     readOnly={Boolean(error)}
                     onChange={syncFormattedEdit}
                   />
                   {!output && !error ? (
                     <p className="formatter-workspace__empty">
-                      Formatting follows the text. Edits in this pane update
-                      Input.
+                      {t('formattingFollows')}
                     </p>
                   ) : null}
                 </div>

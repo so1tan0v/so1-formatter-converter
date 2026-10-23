@@ -6,6 +6,7 @@ import { Route, Routes } from 'react-router-dom';
 /**
  * Imports from presentation
  */
+import { MetricsListener } from '@presentation/analytics/MetricsListener';
 import { AppShell } from '@presentation/layouts/AppShell';
 import { ConverterPage } from '@presentation/pages/ConverterPage';
 import { DifferPage } from '@presentation/pages/DifferPage';
@@ -19,6 +20,7 @@ import { Redirect } from '@presentation/routing/Redirect';
 export function App() {
   return (
     <AppShell>
+      <MetricsListener />
       <Routes>
         <Route path="/" element={<Redirect to="/formatter/json" />} />
         <Route path="/formatter/:type" element={<FormatterPage />} />

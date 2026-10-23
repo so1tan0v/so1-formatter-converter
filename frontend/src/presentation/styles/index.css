@@ -298,6 +298,13 @@ html[data-window='true'] .term-window__chrome {
   gap: 0.2rem;
 }
 
+.tui-locale {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0.1rem;
+}
+
 .tui-type-group {
   display: inline-flex;
   align-items: center;

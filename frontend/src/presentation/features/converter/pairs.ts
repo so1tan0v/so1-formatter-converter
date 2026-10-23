@@ -34,8 +34,9 @@ export const CONVERTER_PAIRS: ConverterPair[] = [
     reverse: 'sql-json',
   },
   {
-    label: 'JSON → Excel',
+    label: 'JSON ↔ Excel',
     forward: 'json-excel',
+    reverse: 'excel-json',
   },
 ];
 

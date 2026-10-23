@@ -15,6 +15,7 @@ import type { ConverterId } from '@domain/converter/types';
 import { defineConverter } from './define-converter';
 import { jsonToYaml } from './json-yaml/json-to-yaml';
 import { yamlToJson } from './json-yaml/yaml-to-json';
+import { excelToJson } from './json-excel/excel-to-json';
 import { jsonToExcel } from './json-excel/json-to-excel';
 import { jsonToSql } from './json-sql/json-to-sql';
 import { sqlToJson } from './json-sql/sql-to-json';
@@ -76,6 +77,15 @@ export function createConverterRegistry(): ConverterRegistry {
       'JSON',
       'Excel',
       jsonToExcel,
+    ),
+    defineConverter(
+      'excel-json',
+      'Excel → JSON',
+      'plaintext',
+      'json',
+      'Excel',
+      'JSON',
+      excelToJson,
     ),
   ];
   const byId = new Map(

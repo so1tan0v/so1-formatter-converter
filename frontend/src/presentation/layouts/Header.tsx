@@ -16,12 +16,12 @@ import type { ConverterId } from '@domain/converter/types';
 /**
  * Imports from presentation
  */
-import {
-  CONVERTER_PAIRS,
-  pairForConverter,
-} from '@presentation/features/converter/pairs';
-import { FORMATTER_GROUPS } from '@presentation/features/formatter/formatter-groups';
 import { useEmbed } from '@presentation/embed/useEmbed';
+import { CONVERTER_GROUPS } from '@presentation/features/converter/converter-groups';
+import { pairForConverter } from '@presentation/features/converter/pairs';
+import { FORMATTER_GROUPS } from '@presentation/features/formatter/formatter-groups';
+import { LOCALES } from '@presentation/i18n/locale';
+import { useLocale } from '@presentation/i18n/useLocale';
 
 /**
  * Верхняя панель с разделами Formatter, Converter, Viewer и Differ
@@ -29,6 +29,7 @@ import { useEmbed } from '@presentation/embed/useEmbed';
 export function Header() {
   const location = useLocation();
   const { isEmbed } = useEmbed();
+  const { t, locale, setLocale } = useLocale();
   const formatterMatch = useMatch('/formatter/:type');
   const converterMatch = useMatch('/converter/:type');
   const viewerMatch = useMatch('/viewer/:type');
@@ -55,7 +56,7 @@ export function Header() {
           <span className="tui-cursor" aria-hidden="true" />
         </p>
       )}
-      <nav className="tui-menu" aria-label="Modes">
+      <nav className="tui-menu" aria-label={t('modes')}>
         <div className="tui-menu__row">
           <NavLink
             to={{ pathname: '/formatter/json', search }}
@@ -63,7 +64,7 @@ export function Header() {
               `tui-tab ${formatterActive ? 'is-active' : ''}`.trim()
             }
           >
-            Formatter
+            {t('formatter')}
           </NavLink>
           <NavLink
             to={{ pathname: '/converter/markdown-jira', search }}
@@ -71,7 +72,7 @@ export function Header() {
               `tui-tab ${converterActive ? 'is-active' : ''}`.trim()
             }
           >
-            Converter
+            {t('converter')}
           </NavLink>
           <NavLink
             to={{ pathname: '/viewer/markdown', search }}
@@ -79,7 +80,7 @@ export function Header() {
               `tui-tab ${viewerActive ? 'is-active' : ''}`.trim()
             }
           >
-            Viewer
+            {t('viewer')}
           </NavLink>
           <NavLink
             to={{ pathname: '/differ', search }}
@@ -87,14 +88,32 @@ export function Header() {
               `tui-tab ${differActive ? 'is-active' : ''}`.trim()
             }
           >
-            Differ
+            {t('differ')}
           </NavLink>
+          <div
+            className="tui-locale"
+            role="group"
+            aria-label={t('locale.label')}
+          >
+            {LOCALES.map((code) => (
+              <button
+                key={code}
+                type="button"
+                className={`tui-type ${locale === code ? 'is-active' : ''}`}
+                onClick={() => setLocale(code)}
+              >
+                {code}
+              </button>
+            ))}
+          </div>
         </div>
         {formatterActive ? (
           <div className="tui-menu__row">
             {FORMATTER_GROUPS.map((group) => (
-              <span className="tui-type-group" key={group.label}>
-                <span className="tui-type-group__label">{group.label}</span>
+              <span className="tui-type-group" key={group.id}>
+                <span className="tui-type-group__label">
+                  {t(`group.${group.id}`)}
+                </span>
                 {group.ids.map((id) => {
                   const formatter = formatterRegistry.get(id);
 
@@ -120,25 +139,33 @@ export function Header() {
         ) : null}
         {converterActive ? (
           <div className="tui-menu__row">
-            {CONVERTER_PAIRS.map((pair) => {
-              const current = converterMatch?.params.type;
-              const active = Boolean(
-                current && pairForConverter(current as ConverterId) === pair,
-              );
-              const target = active && current ? current : pair.forward;
+            {CONVERTER_GROUPS.map((group) => (
+              <span className="tui-type-group" key={group.id}>
+                <span className="tui-type-group__label">
+                  {t(`group.${group.id}`)}
+                </span>
+                {group.pairs.map((pair) => {
+                  const current = converterMatch?.params.type;
+                  const active = Boolean(
+                    current &&
+                    pairForConverter(current as ConverterId) === pair,
+                  );
+                  const target = active && current ? current : pair.forward;
 
-              return (
-                <NavLink
-                  key={pair.forward}
-                  to={{ pathname: `/converter/${target}`, search }}
-                  className={() =>
-                    `tui-type ${active ? 'is-active' : ''}`.trim()
-                  }
-                >
-                  {pair.label}
-                </NavLink>
-              );
-            })}
+                  return (
+                    <NavLink
+                      key={pair.forward}
+                      to={{ pathname: `/converter/${target}`, search }}
+                      className={() =>
+                        `tui-type ${active ? 'is-active' : ''}`.trim()
+                      }
+                    >
+                      {pair.label}
+                    </NavLink>
+                  );
+                })}
+              </span>
+            ))}
           </div>
         ) : null}
         {viewerActive ? (

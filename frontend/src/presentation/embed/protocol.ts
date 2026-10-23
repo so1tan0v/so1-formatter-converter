@@ -1,3 +1,8 @@
+/**
+ * Imports from presentation
+ */
+import { isLocale, type Locale } from '@presentation/i18n/locale';
+
 export const CONVERTER_EMBED_SOURCE = 'so1-converter' as const;
 
 export type ConverterColorScheme = 'dark' | 'light';
@@ -11,6 +16,12 @@ export interface ConverterEmbedThemeMessage {
   readonly source: typeof CONVERTER_EMBED_SOURCE;
   readonly type: 'set-theme';
   readonly theme: ConverterColorScheme;
+}
+
+export interface ConverterEmbedLocaleMessage {
+  readonly source: typeof CONVERTER_EMBED_SOURCE;
+  readonly type: 'set-locale';
+  readonly locale: Locale;
 }
 
 /**
@@ -65,6 +76,32 @@ export function isConverterEmbedThemeMessage(
     isEmbedRecord(value) &&
     value.type === 'set-theme' &&
     isConverterColorScheme(value.theme)
+  );
+}
+
+/**
+ * Собирает сообщение о смене языка во встроенном режиме
+ *
+ * @param locale Язык родительского приложения
+ */
+export function createConverterEmbedLocaleMessage(
+  locale: Locale,
+): ConverterEmbedLocaleMessage {
+  return { source: CONVERTER_EMBED_SOURCE, type: 'set-locale', locale };
+}
+
+/**
+ * Проверяет, что сообщение задаёт язык встроенного конвертера
+ *
+ * @param value Данные события postMessage
+ */
+export function isConverterEmbedLocaleMessage(
+  value: unknown,
+): value is ConverterEmbedLocaleMessage {
+  return (
+    isEmbedRecord(value) &&
+    value.type === 'set-locale' &&
+    isLocale(value.locale)
   );
 }
 

@@ -3,6 +3,11 @@
  */
 import type { HistoryEntry } from '@domain/history/types';
 
+/**
+ * Imports from presentation
+ */
+import { useLocale } from '@presentation/i18n/useLocale';
+
 interface HistorySelectProps {
   entries: HistoryEntry[];
   currentSource: string;
@@ -21,6 +26,8 @@ export function HistorySelect({
   currentSource,
   onSelect,
 }: HistorySelectProps) {
+  const { t } = useLocale();
+
   if (entries.length === 0) {
     return null;
   }
@@ -30,10 +37,10 @@ export function HistorySelect({
 
   return (
     <label className="tui-history">
-      <span className="tui-history__label">Recent</span>
+      <span className="tui-history__label">{t('recent')}</span>
       <select
         className="tui-select tui-select--history"
-        aria-label="Recent inputs"
+        aria-label={t('recentInputs')}
         value={activeId}
         onChange={(event) => {
           const entry = entries.find((item) => item.id === event.target.value);
@@ -45,7 +52,7 @@ export function HistorySelect({
       >
         {activeId === '' ? (
           <option value="" disabled>
-            pick
+            {t('pick')}
           </option>
         ) : null}
         {entries.map((entry, index) => (
@@ -59,7 +66,7 @@ export function HistorySelect({
 }
 
 function previewHistory(source: string): string {
-  const compact = source.replace(/\s+/g, ' ').trim() || 'empty';
+  const compact = source.replace(/\s+/g, ' ').trim() || '…';
 
   return compact.length > 56 ? `${compact.slice(0, 56)}…` : compact;
 }

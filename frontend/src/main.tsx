@@ -13,6 +13,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
  */
 import { EmbedProvider } from '@presentation/embed/EmbedProvider';
 import { applyEmbedFlag, readBootAppearance } from '@presentation/embed/query';
+import { LocaleProvider } from '@presentation/i18n/LocaleProvider';
 import { setupMonaco } from '@presentation/editors/monaco/setup-monaco';
 import { store } from '@presentation/store';
 import { applyTheme } from '@presentation/theme/apply-theme';
@@ -34,13 +35,15 @@ setupMonaco();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <ThemeProvider initialThemeId={bootAppearance.themeId}>
-        <EmbedProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </EmbedProvider>
-      </ThemeProvider>
+      <LocaleProvider initialQueryLocale={bootAppearance.locale}>
+        <ThemeProvider initialThemeId={bootAppearance.themeId}>
+          <EmbedProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </EmbedProvider>
+        </ThemeProvider>
+      </LocaleProvider>
     </Provider>
   </StrictMode>,
 );

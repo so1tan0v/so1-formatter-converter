@@ -5,29 +5,41 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
+ * Imports from presentation
+ */
+import { pageMessages } from '@presentation/i18n/pages';
+import { useLocale } from '@presentation/i18n/useLocale';
+
+/**
  * Imports from relative
  */
-import { documentTitle, pageMetaForPath } from './page-meta';
+import { SITE_NAME } from './page-meta';
 
 /**
  * Обновляет title, description и canonical по текущему маршруту
  */
 export function usePageMeta(): void {
   const { pathname } = useLocation();
+  const { locale, t } = useLocale();
 
   useEffect(() => {
-    const page = pageMetaForPath(pathname);
-    const url = `${window.location.origin}${page.path}`;
+    const messages = pageMessages(pathname);
+    const title = String(t(messages.title));
+    const description = String(t(messages.description));
+    const url = `${window.location.origin}${pathname}`;
+    const documentTitle = `${title} — ${SITE_NAME}`;
 
-    document.title = documentTitle(page);
-    upsertMeta('name', 'description', page.description);
-    upsertMeta('property', 'og:title', document.title);
-    upsertMeta('property', 'og:description', page.description);
+    document.title = documentTitle;
+    document.documentElement.lang = locale;
+    upsertMeta('name', 'description', description);
+    upsertMeta('property', 'og:title', documentTitle);
+    upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', url);
-    upsertMeta('name', 'twitter:title', document.title);
-    upsertMeta('name', 'twitter:description', page.description);
+    upsertMeta('property', 'og:locale', locale === 'ru' ? 'ru_RU' : 'en_US');
+    upsertMeta('name', 'twitter:title', documentTitle);
+    upsertMeta('name', 'twitter:description', description);
     upsertLink('canonical', url);
-  }, [pathname]);
+  }, [locale, pathname, t]);
 }
 
 function upsertMeta(

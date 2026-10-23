@@ -17,6 +17,7 @@ import { VIEWER_IDS, type ViewerId } from '@domain/viewer/types';
  * Imports from presentation
  */
 import { SoonPanel } from '@presentation/components/SoonPanel';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { ViewerWorkspace } from '@presentation/features/viewer/ViewerWorkspace';
 import { Redirect } from '@presentation/routing/Redirect';
 
@@ -25,6 +26,7 @@ import { Redirect } from '@presentation/routing/Redirect';
  */
 export function ViewerPage() {
   const { type } = useParams();
+  const { t } = useLocale();
   const fallback = viewerRegistry.list().find((item) => item.available);
   const fallbackPath = `/viewer/${fallback?.id ?? 'markdown'}`;
 
@@ -45,9 +47,9 @@ export function ViewerPage() {
   if (!viewer.available) {
     return (
       <SoonPanel
-        title="Viewer"
+        title={t('viewer')}
         hint={viewer.label}
-        message={`${viewer.label} viewer is not ready yet.`}
+        message={t('notReady', { label: viewer.label })}
       />
     );
   }

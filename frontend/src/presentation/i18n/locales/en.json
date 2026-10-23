@@ -1,0 +1,234 @@
+{
+  "group": {
+    "data": "Data",
+    "query": "Query",
+    "markup": "Markup"
+  },
+  "locale": {
+    "label": "Language"
+  },
+  "skip": "Skip to content",
+  "resize": "Resize window",
+  "modes": "Modes",
+  "commands": "Commands",
+  "input": "Input",
+  "output": "Output",
+  "error": "Error",
+  "formatted": "Formatted",
+  "preview": "Preview",
+  "diff": "Diff",
+  "settings": "Settings",
+  "show": "Show",
+  "hide": "Hide",
+  "reset": "Reset",
+  "options": "Options",
+  "convert": "Convert",
+  "format": "Format",
+  "render": "Render",
+  "copy": "Copy",
+  "download": "Download",
+  "swap": "Swap",
+  "open": "Open",
+  "example": "Example",
+  "view": "View",
+  "fullscreen": "Fullscreen",
+  "exit": "Exit",
+  "fast": "Fast",
+  "formatter": "Formatter",
+  "converter": "Converter",
+  "viewer": "Viewer",
+  "differ": "Differ",
+  "recent": "Recent",
+  "pick": "pick",
+  "empty": "empty",
+  "openFile": "Open file",
+  "recentInputs": "Recent inputs",
+  "unknownFormatter": "Unknown formatter.",
+  "unknownConverter": "Unknown converter.",
+  "unknownViewer": "Unknown viewer.",
+  "notReady": "{{label}} is not ready yet.",
+  "status": "Status",
+  "soon": "soon",
+  "conversionFollows": "Conversion follows the text.",
+  "formattingFollows": "Formatting follows the text. Edits in this pane update Input.",
+  "previewEmpty": "Preview will appear here after you press Render.",
+  "excelBuildError": "Cannot build the Excel file",
+  "excelReadError": "Cannot read the Excel file",
+  "excelLegacy": "Excel → JSON reads .xlsx workbooks",
+  "exitLabel": "Exit:",
+  "exitKeys": "Ctrl+C / ⌘C",
+  "telegram": "Telegram:",
+  "site": "Site:",
+  "powered": "Powered by:",
+  "lineNumber": "Line {{line}}",
+  "previewTitle": "Preview — {{label}}",
+  "markdownPreview": "Markdown preview",
+  "sideBySide": "side by side",
+  "language": "Language",
+  "ignoreWhitespace": "Ignore whitespace",
+  "collapseUnchanged": "Collapse unchanged",
+  "original": "Original",
+  "modified": "Modified",
+  "inputAria": "{{label}} input",
+  "outputAria": "{{label}} output",
+  "formattedAria": "{{label}} formatted",
+  "formatterAria": "Formatter",
+  "plain": "Text",
+  "lines_one": "{{count}} line",
+  "lines_few": "{{count}} lines",
+  "lines_many": "{{count}} lines",
+  "lines_other": "{{count}} lines",
+  "excel": {
+    "flatten": "Flatten nested",
+    "keyColumn": "Key column",
+    "header": "Header row",
+    "nulls": "Nulls",
+    "empty": "Empty",
+    "booleans": "Booleans",
+    "arrays": "Arrays",
+    "join": "Join",
+    "expand": "Expand"
+  },
+  "opt": {
+    "layout": "Layout",
+    "indent": "Indent",
+    "style": "Style",
+    "pretty": "Pretty",
+    "oneLine": "One line",
+    "escaped": "Escaped string",
+    "keys": "Keys",
+    "path": "Path",
+    "sql": "SQL",
+    "keywords": "Keywords",
+    "upper": "Upper",
+    "lower": "Lower",
+    "asIs": "As is",
+    "markup": "Markup",
+    "attributes": "Attributes",
+    "auto": "Auto",
+    "eachAttribute": "Each attribute",
+    "aligned": "Aligned",
+    "expandMultiline": "Expand multiline",
+    "alignMultiple": "Align multiple",
+    "preserve": "Preserve",
+    "preserveAligned": "Preserve aligned",
+    "more": "More",
+    "minAttributes": "Min attributes",
+    "lineWidth": "Line width",
+    "scripts": "Scripts",
+    "normal": "Normal",
+    "keep": "Keep",
+    "separate": "Separate",
+    "templates": "Templates",
+    "off": "Off",
+    "maxBlank": "Max blank lines",
+    "indentContents": "Indent contents",
+    "indentHead": "Indent head",
+    "indentBody": "Indent body",
+    "keepNewlines": "Keep newlines",
+    "endNewline": "End with newline",
+    "blankBlocks": "Blank line before blocks",
+    "indentHandlebars": "Indent Handlebars",
+    "inlineCustom": "Inline custom elements",
+    "formatPre": "Format pre",
+    "sortKeys": "Sort keys",
+    "dropNull": "Drop null",
+    "escapeUnicode": "Escape unicode",
+    "quotes": "Quotes",
+    "null": "Null",
+    "forceQuotes": "Force quotes",
+    "startDoc": "Start with ---",
+    "endDoc": "End with ..."
+  },
+  "indent": {
+    "1": "1 space",
+    "2": "2 spaces",
+    "3": "3 spaces",
+    "4": "4 spaces",
+    "tab": "tab"
+  },
+  "meta": {
+    "site": {
+      "title": "JSON, YAML, SQL, HTML and XML formatter",
+      "description": "Format JSON, YAML, SQL, HTML and XML. Diff text and files. Convert and preview Markdown, Jira markup, HTML, JSON and YAML in the browser."
+    },
+    "formatter": {
+      "json": {
+        "title": "JSON formatter",
+        "description": "Pretty-print, compact and escape JSON, including JavaScript object literals."
+      },
+      "yaml": {
+        "title": "YAML formatter",
+        "description": "Format and compact YAML in the browser."
+      },
+      "sql": {
+        "title": "SQL formatter",
+        "description": "Format SQL with consistent keywords and indentation."
+      },
+      "html": {
+        "title": "HTML formatter",
+        "description": "Format HTML with attribute wrapping, indentation and template-aware layout."
+      },
+      "xml": {
+        "title": "XML formatter",
+        "description": "Format and compact XML in the browser."
+      }
+    },
+    "converter": {
+      "markdownJira": {
+        "title": "Markdown to Jira",
+        "description": "Convert Markdown to Jira wiki markup."
+      },
+      "jiraMarkdown": {
+        "title": "Jira to Markdown",
+        "description": "Convert Jira wiki markup to Markdown."
+      },
+      "markdownHtml": {
+        "title": "Markdown to HTML",
+        "description": "Convert Markdown to HTML."
+      },
+      "htmlMarkdown": {
+        "title": "HTML to Markdown",
+        "description": "Convert HTML to Markdown."
+      },
+      "jsonYaml": {
+        "title": "JSON to YAML",
+        "description": "Convert JSON to YAML."
+      },
+      "yamlJson": {
+        "title": "YAML to JSON",
+        "description": "Convert YAML to JSON."
+      },
+      "jsonSql": {
+        "title": "JSON to SQL",
+        "description": "Convert JSON rows to SQL INSERT statements."
+      },
+      "sqlJson": {
+        "title": "SQL to JSON",
+        "description": "Convert SQL INSERT statements to JSON."
+      },
+      "jsonExcel": {
+        "title": "JSON to Excel",
+        "description": "Convert JSON rows to an .xlsx workbook with headers from object fields."
+      },
+      "excelJson": {
+        "title": "Excel to JSON",
+        "description": "Convert an .xlsx worksheet, TSV or CSV into JSON rows."
+      }
+    },
+    "viewer": {
+      "markdown": {
+        "title": "Markdown viewer",
+        "description": "Preview Markdown with highlighted code blocks."
+      },
+      "jira": {
+        "title": "Jira viewer",
+        "description": "Preview Jira wiki markup as HTML."
+      }
+    },
+    "differ": {
+      "title": "Text diff",
+      "description": "Compare two texts or files side by side, with synchronized scrolling."
+    }
+  }
+}

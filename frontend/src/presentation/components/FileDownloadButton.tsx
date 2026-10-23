@@ -1,6 +1,12 @@
 /**
+ * Imports from infrastructure
+ */
+import { trackAction } from '@infrastructure/analytics/metrics';
+
+/**
  * Imports from presentation
  */
+import { useLocale } from '@presentation/i18n/useLocale';
 import { downloadTextFile } from '@presentation/files/text-file';
 
 interface FileDownloadButtonProps {
@@ -21,14 +27,19 @@ export function FileDownloadButton({
   text,
   disabled = false,
 }: FileDownloadButtonProps) {
+  const { t } = useLocale();
+
   return (
     <button
       type="button"
       className="tui-inline-cmd"
       disabled={disabled || text.length === 0}
-      onClick={() => downloadTextFile(fileName, text)}
+      onClick={() => {
+        trackAction('download');
+        downloadTextFile(fileName, text);
+      }}
     >
-      &quot;Download&quot;
+      {`"${t('download')}"`}
     </button>
   );
 }

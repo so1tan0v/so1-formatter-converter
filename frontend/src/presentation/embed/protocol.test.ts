@@ -8,9 +8,11 @@ import { describe, expect, it } from 'vitest';
  */
 import {
   createConverterEmbedExitMessage,
+  createConverterEmbedLocaleMessage,
   createConverterEmbedThemeMessage,
   isConverterColorScheme,
   isConverterEmbedExitMessage,
+  isConverterEmbedLocaleMessage,
   isConverterEmbedThemeMessage,
   isEmbedExitShortcut,
   parentOriginFromReferrer,
@@ -30,6 +32,16 @@ describe('converter embed protocol', () => {
     expect(
       isConverterEmbedThemeMessage(createConverterEmbedThemeMessage('light')),
     ).toBe(true);
+    expect(
+      isConverterEmbedLocaleMessage(createConverterEmbedLocaleMessage('ru')),
+    ).toBe(true);
+    expect(
+      isConverterEmbedLocaleMessage({
+        source: 'so1-converter',
+        type: 'set-locale',
+        locale: 'de',
+      }),
+    ).toBe(false);
     expect(isConverterEmbedExitMessage({ source: 'other', type: 'exit' })).toBe(
       false,
     );

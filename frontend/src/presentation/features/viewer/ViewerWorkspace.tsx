@@ -21,6 +21,11 @@ import {
 import { viewText } from '@application/view-text';
 
 /**
+ * Imports from infrastructure
+ */
+import { trackAction } from '@infrastructure/analytics/metrics';
+
+/**
  * Imports from domain
  */
 import { FORMATTER_IDS, type FormatterId } from '@domain/formatter/types';
@@ -44,6 +49,7 @@ import { fileNameFor } from '@presentation/files/text-file';
 import { VIEW_SAMPLES } from '@presentation/fixtures/samples';
 import { DebouncedSubmit } from '@presentation/forms/DebouncedSubmit';
 import { useInputHistory } from '@presentation/hooks/useInputHistory';
+import { useLocale } from '@presentation/i18n/useLocale';
 import { useAppDispatch, useAppSelector } from '@presentation/store/hooks';
 import {
   clearResult,
@@ -68,6 +74,7 @@ interface ViewerFormValues {
  */
 export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   const dispatch = useAppDispatch();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const location = useLocation();
   const output = useAppSelector((state) => state.workspace.output);
@@ -193,7 +200,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
   }, [dispatch, error, output, sample, fullscreen]);
 
   if (!viewer) {
-    return <p className="term-error">Unknown viewer.</p>;
+    return <p className="term-error">{t('unknownViewer')}</p>;
   }
 
   return (
@@ -237,7 +244,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
             <DebouncedSubmit signature={values.source} />
             <div className="formatter-workspace__panes">
               <AsciiFrame
-                title="Input"
+                title={t('input')}
                 hint={viewer.sourceLabel}
                 fill
                 actions={
@@ -262,7 +269,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                     <select
                       id="viewer-formatter"
                       className="tui-select tui-select--formatter"
-                      aria-label="Formatter"
+                      aria-label={t('formatterAria')}
                       value={fastFormatterId}
                       onChange={(event) => {
                         const next = event.target.value;
@@ -312,9 +319,10 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                         void setFieldValue('source', result.value);
                         dispatch(setSource(result.value));
                         dispatch(clearResult());
+                        trackAction('format');
                       }}
                     >
-                      &quot;Fast&quot;
+                      {`"${t('fast')}"`}
                     </button>
                     <button
                       type="button"
@@ -332,7 +340,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                         });
                       }}
                     >
-                      &quot;Formatter&quot;
+                      {`"${t('formatter')}"`}
                     </button>
                     <HistorySelect
                       entries={entries}
@@ -360,7 +368,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                 <CodeEditor
                   value={values.source}
                   language={viewer.editorLanguage}
-                  ariaLabel={`${viewer.label} input`}
+                  ariaLabel={t('inputAria', { label: viewer.label })}
                   onChange={(next) => {
                     void setFieldValue('source', next);
                     dispatch(setSource(next));
@@ -374,9 +382,10 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                   className="tui-inline-cmd tui-inline-cmd--block"
                   onClick={() => {
                     rememberNext.current = true;
+                    trackAction('render');
                   }}
                 >
-                  &quot;Render&quot;
+                  {`"${t('render')}"`}
                 </button>
                 <span
                   className="formatter-workspace__gutter-arrow"
@@ -387,7 +396,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
               </div>
 
               <AsciiFrame
-                title={error ? 'Error' : 'Preview'}
+                title={error ? t('error') : t('preview')}
                 hint={error ? undefined : viewer.label}
                 fill
                 actions={
@@ -403,7 +412,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                       disabled={!output || Boolean(error)}
                       onClick={() => setFullscreen(true)}
                     >
-                      &quot;Fullscreen&quot;
+                      {`"${t('fullscreen')}"`}
                     </button>
                   </>
                 }
@@ -420,7 +429,7 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                     />
                   ) : (
                     <p className="formatter-workspace__empty">
-                      Preview will appear here after you press Render.
+                      {t('previewEmpty')}
                     </p>
                   )}
                 </div>
@@ -431,18 +440,18 @@ export function ViewerWorkspace({ viewerId }: ViewerWorkspaceProps) {
                   <div
                     className="markdown-preview-fullscreen"
                     role="dialog"
-                    aria-label="Markdown preview"
+                    aria-label={t('markdownPreview')}
                   >
                     <header className="markdown-preview-fullscreen__bar">
                       <span className="markdown-preview-fullscreen__title">
-                        Preview — {viewer.label}
+                        {t('previewTitle', { label: viewer.label })}
                       </span>
                       <button
                         type="button"
                         className="tui-inline-cmd"
                         onClick={() => setFullscreen(false)}
                       >
-                        &quot;Exit&quot;
+                        {`"${t('exit')}"`}
                       </button>
                     </header>
                     <div

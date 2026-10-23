@@ -87,6 +87,11 @@ export const INDEXABLE_PAGES: PageMeta[] = [
       'Convert JSON rows to an .xlsx workbook with headers from object fields.',
   },
   {
+    path: '/converter/excel-json',
+    title: 'Excel to JSON',
+    description: 'Convert an .xlsx worksheet, TSV or CSV into JSON rows.',
+  },
+  {
     path: '/viewer/markdown',
     title: 'Markdown viewer',
     description: 'Preview Markdown with highlighted code blocks.',

@@ -9,10 +9,12 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { EmbedContext } from '@presentation/embed/embed-context';
 import {
   createConverterEmbedExitMessage,
+  isConverterEmbedLocaleMessage,
   isConverterEmbedThemeMessage,
   isEmbedExitShortcut,
   parentOriginFromReferrer,
 } from '@presentation/embed/protocol';
+import { useLocale } from '@presentation/i18n/useLocale';
 import {
   applyEmbedFlag,
   readBootAppearance,
@@ -32,6 +34,7 @@ interface EmbedProviderProps {
  */
 export function EmbedProvider({ children }: EmbedProviderProps) {
   const { setThemeId } = useTheme();
+  const { setLocale } = useLocale();
   const [isEmbed] = useState(() => {
     const boot = readBootAppearance(window.location.search);
 
@@ -64,6 +67,12 @@ export function EmbedProvider({ children }: EmbedProviderProps) {
     };
 
     const onMessage = (event: MessageEvent) => {
+      if (isConverterEmbedLocaleMessage(event.data)) {
+        setLocale(event.data.locale);
+
+        return;
+      }
+
       if (!isConverterEmbedThemeMessage(event.data)) {
         return;
       }
@@ -78,7 +87,7 @@ export function EmbedProvider({ children }: EmbedProviderProps) {
       window.removeEventListener('keydown', onKeyDown, true);
       window.removeEventListener('message', onMessage);
     };
-  }, [isEmbed, setThemeId]);
+  }, [isEmbed, setLocale, setThemeId]);
 
   return (
     <EmbedContext.Provider value={value}>{children}</EmbedContext.Provider>

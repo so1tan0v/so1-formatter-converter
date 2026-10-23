@@ -5,12 +5,14 @@ import {
   isConverterColorScheme,
   type ConverterColorScheme,
 } from '@presentation/embed/protocol';
+import { localeFromSearch, type Locale } from '@presentation/i18n/locale';
 import { THEME_ID_DARK, THEME_ID_LIGHT } from '@presentation/theme/catalog';
 
 export interface BootAppearance {
   isEmbed: boolean;
   themeId: string;
   scheme: ConverterColorScheme | null;
+  locale: Locale | null;
 }
 
 /**
@@ -39,6 +41,7 @@ export function readBootAppearance(search: string): BootAppearance {
   return {
     isEmbed,
     scheme,
+    locale: localeFromSearch(search),
     themeId: scheme ? themeIdFromScheme(scheme) : THEME_ID_DARK,
   };
 }

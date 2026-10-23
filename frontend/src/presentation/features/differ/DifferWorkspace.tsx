@@ -10,12 +10,18 @@ import { useNavigate } from 'react-router-dom';
 import { formatterRegistry } from '@app/composition';
 
 /**
+ * Imports from infrastructure
+ */
+import { trackAction } from '@infrastructure/analytics/metrics';
+
+/**
  * Imports from presentation
  */
 import { AsciiFrame } from '@presentation/components/AsciiFrame';
 import { useAppDispatch } from '@presentation/store/hooks';
 import { setSource } from '@presentation/store/workspace.slice';
 import { usePanelOpen } from '@presentation/hooks/usePanelOpen';
+import { useLocale } from '@presentation/i18n/useLocale';
 import {
   formatWithSavedOptions,
   formatterIdForDifferLanguage,
@@ -59,6 +65,7 @@ const SAMPLE_DRAFT: DifferDraft = {
  */
 export function DifferWorkspace() {
   const dispatch = useAppDispatch();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [draft, setDraft] = useState<DifferDraft>(readDraft);
   const draftRef = useRef(draft);
@@ -186,6 +193,7 @@ export function DifferWorkspace() {
     }
 
     setFastError(null);
+    trackAction('format');
     setDraft((current) =>
       side === 'original'
         ? { ...current, original: result.value }
@@ -213,8 +221,8 @@ export function DifferWorkspace() {
   return (
     <div className="differ-workspace">
       <AsciiFrame
-        title="Settings"
-        hint="side by side"
+        title={t('settings')}
+        hint={t('sideBySide')}
         collapsed={!settings.open}
         actions={
           <button
@@ -223,13 +231,13 @@ export function DifferWorkspace() {
             aria-expanded={settings.open}
             onClick={() => settings.setOpen(!settings.open)}
           >
-            {settings.open ? '"Hide"' : '"Show"'}
+            {`"${settings.open ? t('hide') : t('show')}"`}
           </button>
         }
       >
         <div className="tui-fields">
           <label className="tui-field" htmlFor="differ-language">
-            <span className="tui-field__name">Language</span>
+            <span className="tui-field__name">{t('language')}</span>
             <select
               id="differ-language"
               className="tui-select"
@@ -249,7 +257,9 @@ export function DifferWorkspace() {
             >
               {DIFFER_LANGUAGES.map((language) => (
                 <option key={language} value={language}>
-                  {DIFFER_LANGUAGE_LABELS[language]}
+                  {language === 'plaintext'
+                    ? t('plain')
+                    : DIFFER_LANGUAGE_LABELS[language]}
                 </option>
               ))}
             </select>
@@ -260,7 +270,7 @@ export function DifferWorkspace() {
               checked={ignoreWhitespace}
               onChange={(event) => setIgnoreWhitespace(event.target.checked)}
             />
-            Ignore whitespace
+            {t('ignoreWhitespace')}
           </label>
           <label className="tui-check">
             <input
@@ -268,12 +278,13 @@ export function DifferWorkspace() {
               checked={collapseUnchanged}
               onChange={(event) => setCollapseUnchanged(event.target.checked)}
             />
-            Collapse unchanged
+            {t('collapseUnchanged')}
           </label>
           <button
             type="button"
             className="tui-inline-cmd"
             onClick={() => {
+              trackAction('swap');
               setDraft((current) => ({
                 ...current,
                 original: current.modified,
@@ -283,15 +294,15 @@ export function DifferWorkspace() {
               }));
             }}
           >
-            &quot;Swap&quot;
+            {`"${t('swap')}"`}
           </button>
         </div>
       </AsciiFrame>
 
-      <AsciiFrame title="Diff" fill>
+      <AsciiFrame title={t('diff')} fill>
         <div className="differ-sides">
           <div className="differ-side">
-            <span className="differ-side__role">Original</span>
+            <span className="differ-side__role">{t('original')}</span>
             <span className="differ-side__name" title={draft.originalName}>
               {draft.originalName}
             </span>
@@ -319,7 +330,7 @@ export function DifferWorkspace() {
               disabled={!formatterId || !draft.original.trim()}
               onClick={() => formatSide('original')}
             >
-              &quot;Fast&quot;
+              {`"${t('fast')}"`}
             </button>
             <button
               type="button"
@@ -327,11 +338,11 @@ export function DifferWorkspace() {
               disabled={!formatterId || !draft.original.trim()}
               onClick={() => openFormatter('original')}
             >
-              &quot;Formatter&quot;
+              {`"${t('formatter')}"`}
             </button>
           </div>
           <div className="differ-side">
-            <span className="differ-side__role">Modified</span>
+            <span className="differ-side__role">{t('modified')}</span>
             <span className="differ-side__name" title={draft.modifiedName}>
               {draft.modifiedName}
             </span>
@@ -359,7 +370,7 @@ export function DifferWorkspace() {
               disabled={!formatterId || !draft.modified.trim()}
               onClick={() => formatSide('modified')}
             >
-              &quot;Fast&quot;
+              {`"${t('fast')}"`}
             </button>
             <button
               type="button"
@@ -367,7 +378,7 @@ export function DifferWorkspace() {
               disabled={!formatterId || !draft.modified.trim()}
               onClick={() => openFormatter('modified')}
             >
-              &quot;Formatter&quot;
+              {`"${t('formatter')}"`}
             </button>
           </div>
         </div>
