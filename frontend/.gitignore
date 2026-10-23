@@ -21,3 +21,5 @@ npm-debug.log*
 # Tests / coverage
 coverage
 *.tsbuildinfo
+
+package-lock.json
