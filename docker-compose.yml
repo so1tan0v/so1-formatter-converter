@@ -71,8 +71,8 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-APpeQnvIi0SnKF6}
       GF_SECURITY_COOKIE_SECURE: "true"
-      GF_SERVER_DOMAIN: grafana.soltanov.dev
-      GF_SERVER_ROOT_URL: https://grafana.soltanov.dev
+      GF_SERVER_DOMAIN: grafana.conv.soltanov.dev
+      GF_SERVER_ROOT_URL: https://grafana.conv.soltanov.dev
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_UID: fmt-site
     volumes:
       - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
